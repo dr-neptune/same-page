@@ -1,0 +1,22 @@
+* <2024-12-22 Sun>
+Next steps:
+
+- get a proper backend model working
+  - maybe to start we can just store a bunch in a row
+
+- set up a small local database
+- enable edits in small chunks using HTMX
+  - since we have this feature, we can maybe make a very dynamic built
+    up collage of sorts for a layout
+
+- Add real-time collaboration with web-sockets
+
+- add session handling and user management
+
+- handle conflicts for simultaneous updates
+
+- add a proper database. Maybe use more docker compose
+
+- add more advanced text editing
+
+- add user A updated at notification

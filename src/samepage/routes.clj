@@ -4,19 +4,19 @@
             [samepage.model :as model]))
 
 (defn root-page-handler
-  [_system _request]
+  [system request]
   {:status  200
    :headers {"Content-Type" "text/html"}
-   :body    "<p>Go to <a href=\"/create-notes\">/create-notes</a> to create a note.</p>"})
+   :body    (pages/root-page)})
 
 (defn new-note-handler
-  [_system _request]
+  [system request]
   {:status 200
    :headers {"Content-Type" "text/html"}
    :body    (pages/new-note-page)})
 
 (defn create-note-handler
-  [_system request]
+  [system request]
   (let [note-text (get-in request [:params "note-text"] "")
         note-id   (model/create-note! note-text)]
     {:status  302
@@ -24,7 +24,7 @@
      :body    ""}))
 
 (defn fetch-note-handler
-  [_system request]
+  [system request]
   (let [note-id (-> request :path-params :note-id)
         note-content (model/get-note note-id)]
     (if note-content
