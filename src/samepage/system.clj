@@ -1,12 +1,18 @@
 (ns samepage.system
   (:require [ring.adapter.jetty :as jetty]
+            [ring.middleware.params :refer [wrap-params]]
             [samepage.routes :as routes])
   (:import (org.eclipse.jetty.server Server)))
+
+(defn make-app
+  [system]
+  (-> (partial #'routes/root-handler system)
+      (wrap-params)))
 
 (defn start-server
   [system]
   (jetty/run-jetty
-    (partial #'routes/root-handler system)
+    (make-app system)
     {:port 9999
      :join? false}))
 
