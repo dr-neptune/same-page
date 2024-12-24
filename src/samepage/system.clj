@@ -1,13 +1,15 @@
 (ns samepage.system
   (:require [ring.adapter.jetty :as jetty]
             [ring.middleware.params :refer [wrap-params]]
+            [ring.middleware.session :refer [wrap-session]]  ;; <--- added
             [samepage.routes :as routes])
   (:import (org.eclipse.jetty.server Server)))
 
 (defn make-app
   [system]
   (-> (partial #'routes/root-handler system)
-      (wrap-params)))
+      (wrap-params)
+      (wrap-session)))
 
 (defn start-server
   [system]
