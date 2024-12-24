@@ -16,6 +16,8 @@ Next steps:
 - figure out some neat things that can be done in htmx that aren't as
   simple in react
 
+- maybe simple auth? So the user can't see / access other notes and whatnot
+
 * <2024-12-22 Sun>
 Next steps:
 
