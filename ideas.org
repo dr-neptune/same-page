@@ -1,3 +1,22 @@
+* <2024-12-24 Tue>
+
+- add formatting / linting
+
+maybe start building a proper domain model
+- write up initial thoughts
+- clarify and expand them
+
+- use a database migration tool
+- maybe look into honeysql and malli?
+  - honeysql seems like a good idea
+  - malli might be a bit early for now, let's see what the domain
+    model looks like first
+
+    maybe add a nice scheduling system in it for reminders and
+    whatnot. A cool little use case would be to also make a
+    plant-daddy app that takes care of various plant needs.
+
+
 * <2024-12-23 Mon>
 
 Next steps:
