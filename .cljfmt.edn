@@ -1,0 +1,27 @@
+{
+  ;; By default, cljfmt will remove trailing whitespace from lines.
+  ;; `:remove-surrounding-whitespace? true` also removes blank lines at the top/bottom.
+  :remove-surrounding-whitespace? true
+
+  ;; Indentation settings
+  :indents {
+    ;; Overriding some common forms that might need special indentation
+    ;; If you don't use these macros, feel free to remove them.
+    let          [[:block 1]]
+    if-let       [[:block 1]]
+    when-let     [[:block 1]]
+    for          [[:block 1]]
+    cond         [[:block 0]]
+    as->         [[:block 2]]
+    ;; etc.
+  }
+
+  ;; If you want map key-value pairs each on a separate line:
+  ;; set `:indents {...} :split-keypairs-over-multiple-lines? true`,
+  ;; but most folks leave it false for normal inline maps.
+  :split-keypairs-over-multiple-lines? false
+
+  ;; Some folks prefer 80 or 100 as a max line length. cljfmt doesn't strictly enforce
+  ;; line wrapping, but it can auto-split certain forms if you'd like:
+  :print-width 100
+}

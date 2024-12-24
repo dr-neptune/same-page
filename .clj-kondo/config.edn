@@ -1,0 +1,27 @@
+{
+ ;; "linters" config sets which checks to enable/disable
+  :linters {
+            ;; You can enable or disable any of these.
+            :unresolved-symbol         {:level :warning}
+            :unresolved-namespace      {:level :warning}
+            :unused-namespace          {:level :warning}
+            :unused-referred-var       {:level :warning}
+            :unused-binding            {:level :warning}
+            :missing-docstring         {:level :infoing}
+            :deprecated-var            {:level :warning}
+            :warn-on-reflection        {:level :warning}
+  }
+
+  ;; If you have macros that you don't want warnings for, add an :exclude
+  ;; Or if there's a 3rd-party macro that confuses the linter, you can ignore it
+  :macro-expanders {
+    ;; example: my.project/macroname "resources/clj-kondo/macros/macroname.clj"
+  }
+
+  ;; If you need to ignore certain namespaces or patterns
+  :skip-comments false
+  ;; :namespaces {:exclude [my.special.ns]}
+
+  ;; If you have your code in different directories or outside src,
+  ;; you can specify them as :paths in your clj-kondo invocation or config.
+}
