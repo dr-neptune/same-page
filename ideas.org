@@ -1,34 +1,20 @@
 * <2024-12-23 Mon>
 
-Can you make the following changes:
-- when a user adds a note, clear the textbox
-- make the timestamp only display the date and time. The underlying
-  data structure can contain the full timestamp when we move to using
-  a database later.
-  - currently it shows the full timestamp like so: 2024-12-24T01:18:32.129920816Z
-- make the button color match the theme
+Next steps:
+- stop making a new database every time. It would be better to use a
+  proper db migration tool
 
-Furthermore, let's do the initial work to adding a user management
-system. When a user first visits the site, let's ask them to
-register. For now let's keep it simple, we just need a name to attach
-to the notes
+- Maybe use something for managing SQL?
 
-I got this error:
+- Make a users table that stores information about a user and have it
+  join to notes
 
-Execution error (FileNotFoundException) at samepage.pages/eval3551$loading (pages.clj:1).
-Could not locate java_time__init.class, java_time.clj or java_time.cljc on classpath. Please check that namespaces with dashes use underscores in the Clojure file name.
+- add user spaces where a user can make projects which have notes
 
-Do I need to add something to my deps.edn? Here is that file:
+- maybe try using postgres or something instead of H2?
 
- {:paths ["src"]
- :deps {org.clojure/clojure {:mvn/version "1.12.0"}
-        ring/ring {:mvn/version "1.13.0"}
-        metosin/reitit-ring {:mvn/version "0.7.2"}
-        hiccup/hiccup {:mvn/version "2.0.0-RC3"}}}
-
-Also, can we re-work the root page to be a landing page of sorts?
-Please remove anything un-necessary in pages
-
+- figure out some neat things that can be done in htmx that aren't as
+  simple in react
 
 * <2024-12-22 Sun>
 Next steps:

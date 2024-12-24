@@ -27,12 +27,13 @@
      :headers {"Location" "/create-notes"}
      :body    ""}))
 
+
 ;; GET /create-notes
 (defn new-note-handler
   [system request]
   (let [session   (:session request)
         user-name (get-in session [:user :name] "Guest")
-        notes     (model/get-session-notes session)]
+        notes     (model/get-notes-for-user user-name)]
     {:status  200
      :headers {"Content-Type" "text/html"}
      :body    (pages/new-note-page notes user-name)}))
@@ -40,15 +41,20 @@
 ;; POST /notes (HTMX partial update)
 (defn create-note-handler
   [system request]
-  (let [session     (:session request)
-        note-text   (get-in request [:params "note-text"] "")
-        new-session (model/add-session-note session note-text)
-        notes       (model/get-session-notes new-session)]
-    {:status  200
-     :headers {"Content-Type" "text/html"}
-     :session new-session
-     :body    (html (pages/notes-table notes))}))
+  (let [session   (:session request)
+        user-name (get-in session [:user :name] "Anonymous")
+        note-text (get-in request [:params "note-text"] "")]
 
+    ;; Insert into DB
+    (model/create-note! user-name note-text)
+
+    ;; Query updated notes
+    (let [notes (model/get-notes-for-user user-name)]
+      {:status  200
+       :headers {"Content-Type" "text/html"}
+       :session session
+       :body    (html (pages/notes-table notes))})))
+_
 (defn not-found-handler
   [_request]
   {:status 404

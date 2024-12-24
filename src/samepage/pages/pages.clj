@@ -6,9 +6,11 @@
 
 ;; 1) Format timestamps
 (defn format-timestamp
-  [instant]
-  (let [formatter (DateTimeFormatter/ofPattern "yyyy-MM-dd HH:mm")
-        zdt       (.atZone instant (ZoneId/systemDefault))]
+  [ts]
+  (let [formatter (java.time.format.DateTimeFormatter/ofPattern "yyyy-MM-dd HH:mm")
+        zdt       (-> ts
+                      (.toInstant)                 ;; convert java.sql.Timestamp -> java.time.Instant
+                      (.atZone (java.time.ZoneId/systemDefault)))]
     (.format zdt formatter)))
 
 ;; 2) A reusable layout function so we don't repeat <head> tags every time
@@ -42,9 +44,9 @@
       [:th {:class "py-2 px-4 border-b border-gray-600"} "Note"]
       [:th {:class "py-2 px-4 border-b border-gray-600"} "Timestamp"]]]
     [:tbody
-     (for [{:keys [id user text timestamp]} notes]
+     (for [{:keys [id user_name text timestamp]} notes]
        [:tr {:key id :class "hover:bg-[#3b2a40]"}
-        [:td {:class "py-2 px-4 border-b border-gray-600"} user]
+        [:td {:class "py-2 px-4 border-b border-gray-600"} user_name]
         [:td {:class "py-2 px-4 border-b border-gray-600"} text]
         [:td {:class "py-2 px-4 border-b border-gray-600"}
          (format-timestamp timestamp)]])]]])
