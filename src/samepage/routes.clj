@@ -1,25 +1,47 @@
 (ns samepage.routes
   (:require [reitit.ring :as reitit-ring]
+            [hiccup.core :refer [html]]
             [samepage.pages :as pages]
-            [samepage.model :as model]
-            [hiccup.core :refer [html]]))
+            [samepage.model :as model]))
 
-;; root-page handler
+;; Landing page
 (defn root-page-handler
   [system request]
   {:status  200
    :headers {"Content-Type" "text/html"}
    :body    (pages/root-page)})
 
-;; new-note-page handler
+;; GET /register
+(defn get-register-handler
+  [system request]
+  {:status  200
+   :headers {"Content-Type" "text/html"}
+   :body    (pages/register-page)})
+
+;; POST /register
+(defn post-register-handler
+  [system request]
+  (let [user-name (get-in request [:params "user-name"] "Anonymous")]
+    {:status  302
+     :session (assoc (:session request) :user {:name user-name})
+     :headers {"Location" "/create-notes"}
+     :body    ""}))
+
+;; GET /create-notes
 (defn new-note-handler
   [system request]
-  (let [notes (model/get-session-notes (:session request))]
+  (let [session   (:session request)
+        user-name (get-in session [:user :name] "Guest")
+        notes     (model/get-session-notes session)]
+    ;; Optionally, if user not in session => redirect to /register
+    ;; (if (nil? (get session :user))
+    ;;   {:status 302 :headers {"Location" "/register"} :body ""}
+    ;;   ...)
     {:status  200
      :headers {"Content-Type" "text/html"}
-     :body    (pages/new-note-page notes)}))
+     :body    (pages/new-note-page notes user-name)}))
 
-;; HTMX endpoint
+;; POST /notes (HTMX partial update)
 (defn create-note-handler
   [system request]
   (let [session     (:session request)
@@ -41,18 +63,17 @@
   [system]
   [ ["/"
      {:get {:handler (partial #'root-page-handler system)}}]
-
+    ["/register"
+     {:get  {:handler (partial #'get-register-handler system)}
+      :post {:handler (partial #'post-register-handler system)}}]
     ["/create-notes"
      {:get {:handler (partial #'new-note-handler system)}}]
-
     ["/notes"
-     {:post {:handler (partial #'create-note-handler system)}}]
-    ;; Removed single-note route
-  ])
+     {:post {:handler (partial #'create-note-handler system)}}] ])
 
 (defn root-handler
   [system request]
   (let [handler (reitit-ring/ring-handler
-                  (reitit-ring/router (routes system))
-                  #'not-found-handler)]
+                 (reitit-ring/router (routes system))
+                 not-found-handler)]
     (handler request)))
