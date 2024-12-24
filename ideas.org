@@ -13,7 +13,6 @@ system. When a user first visits the site, let's ask them to
 register. For now let's keep it simple, we just need a name to attach
 to the notes
 
-
 I got this error:
 
 Execution error (FileNotFoundException) at samepage.pages/eval3551$loading (pages.clj:1).
