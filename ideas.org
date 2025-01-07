@@ -1,5 +1,112 @@
 * <2025-01-07 Tue>
+** High-Level Domain & Data Model
 
+*** 1. Domain Concepts
+   1. User
+      - Represents a person who logs into the app.
+      - Owns goals (and can share them in the future).
+      - Can collaborate on others’ goals as well.
+
+   2. Goal
+      - High-level objective (e.g., “Master Guitar,” “Learn French,” etc.).
+      - Progress measured by logging sessions (time + notes).
+      - Could have a specific target (e.g., 10,000 hours to mastery).
+
+   3. Practice Session (Time Log)
+      - Each session records:
+        - Duration (time spent).
+        - Notes or reflections (deliberate practice focus, etc.).
+        - Date/time of the session.
+      - Potentially attach images or other media in future.
+
+   4. Sharing / Collaboration (Future)
+      - Multiple users can share or collaborate on a goal.
+      - Roles: “viewer,” “editor,” or similar.
+      - A user can grant access to others for specific goals.
+
+   5. Reminders / Nudges (Future)
+      - Remind user of deliberate practice tips or progress updates.
+      - Could be simple text, push notifications, or scheduled emails.
+
+*** 2. Relationships
+   - User → Goal
+     - A User has many Goals.
+     - Each Goal belongs to one User (its owner).
+   - Goal → Practice Session
+     - A Goal has many Practice Sessions.
+     - Each Practice Session belongs to exactly one Goal.
+   - (Future) User ↔ Goal (Sharing / Collaboration)
+     - A User can have access to many Goals (via share table).
+     - A Goal can be accessed by multiple Users.
+
+*** 3. Proposed Data Model
+
+**** 3.1. Users Table
+| Column     | Type         | Description                               |
+|------------+--------------+-------------------------------------------|
+| id         | BIGINT (PK)  | Primary key (auto-increment/identity)     |
+| email      | VARCHAR(255) | Unique email address                      |
+| name       | VARCHAR(255) | Display name or real name                 |
+| password   | VARCHAR(255) | Hashed password (or external OAuth, etc.) |
+| created_at | TIMESTAMP    | When user was created                     |
+| updated_at | TIMESTAMP    | Last update timestamp (optional)          |
+
+**** 3.2. Goals Table
+| Column       | Type           | Description                                     |
+|--------------+----------------+-------------------------------------------------|
+| id           | BIGINT (PK)    | Primary key (auto-increment/identity)           |
+| user_id      | BIGINT (FK)    | References users.id (the owner of the goal)     |
+| title        | VARCHAR(255)   | Short descriptive title (e.g., “Master Guitar”) |
+| description  | TEXT           | Longer description or purpose statement         |
+| target_hours | INT or DECIMAL | (Optional) e.g., 10,000 for mastery             |
+| created_at   | TIMESTAMP      | When goal was created                           |
+| updated_at   | TIMESTAMP      | Last update timestamp                           |
+
+**** 3.3. Practice Sessions (Time Logs)
+| Column       | Type           | Description                                                    |
+|--------------+----------------+----------------------------------------------------------------|
+| id           | BIGINT (PK)    | Primary key (auto-increment/identity)                          |
+| goal_id      | BIGINT (FK)    | References goals.id                                            |
+| duration     | INT or DECIMAL | Time spent on the goal (choose suitable units: minutes, hours) |
+| notes        | TEXT           | User’s practice notes, reflections, etc.                       |
+| session_date | TIMESTAMP      | When the session took place (could be TIMESTAMP or DATE)       |
+| created_at   | TIMESTAMP      | When this log record was created                               |
+| updated_at   | TIMESTAMP      | Last update timestamp                                          |
+
+**** 3.4. Shares Table (Future Collaboration)
+| Column     | Type        | Description                                    |
+|------------+-------------+------------------------------------------------|
+| id         | BIGINT (PK) | Primary key (auto-increment)                   |
+| goal_id    | BIGINT (FK) | References goals.id                            |
+| user_id    | BIGINT (FK) | References users.id (the user who gets access) |
+| role       | VARCHAR(50) | “viewer”, “editor”, etc.                       |
+| created_at | TIMESTAMP   | When this share entry was created              |
+
+**** 3.5. Images Table (Future Attachments)
+| Column              | Type          | Description                                              |
+|---------------------+---------------+----------------------------------------------------------|
+| id                  | BIGINT (PK)   | Primary key (auto-increment)                             |
+| practice_session_id | BIGINT (FK)   | References practice_sessions.id                          |
+| url or blob         | VARCHAR(1024) | Could be a URL (S3, local, etc.) or BLOB if storing data |
+| caption             | TEXT          | Optional caption / description of the image              |
+| created_at          | TIMESTAMP     | When image record was created                            |
+
+*** 4. Example Workflow
+   1. User registers → Creates a record in Users.
+   2. User creates one or more Goals → Records in Goals, linked to user_id.
+   3. User logs Practice Sessions → Each row in Practice Sessions belongs to a goal.
+   4. (Future) User decides to share a goal → Entry in Shares table giving another user “viewer” or “editor” role.
+   5. (Future) User adds images to sessions → Rows in Images, referencing practice_session_id.
+
+*** 5. Next Steps
+   - Implement user authentication/authorization.
+   - Build CRUD for Goals (create, read, update, delete).
+   - Build CRUD for Practice Sessions.
+   - (Future) Implement collaboration/sharing logic.
+   - (Future) Add file/image handling if storing attachments.
+   - (Future) Introduce reminders or notifications for deliberate practice.
+
+** Other Notes
 - testing new emacs config on permutation.
 - next step should be to persist the persistence layer. I'm wondering
   if it might be beneficial to switch from H2 to sqlite
@@ -19,7 +126,32 @@ dynamically using pipes is enticing.
 
 next step: let's add more functionality. I think now is a good time to
 explore a minimal domain model and do some db modeling with yip
-  
+
+This works!
+
+I think its a good time to start thinking of a good domain and data
+model.
+
+Here is a vision for the app:
+This app will be a way to track the users progress towards mastery in
+a skill or a group of skills. Think the 10,000 hour to mastery idea.
+
+The user should be able to log in to their own area. In that area
+there should be a way to perform crud operations on high level goals.
+For each goal, it should be easy to add some time progress toward that
+goal. The user should have reminders when logging as to what
+deliberate practice is. In the future we would like to make it so that
+multiple users can work together on shared goals, and a user can share
+results from a goal to anyone they want to specify.
+
+As a user progresses on their goal and updates, they should be able to
+log time they spent on the goal, notes from that session, and
+eventually things like images.
+
+Can you build me a simple domain model and data model to go with it?
+Please focus on high level before we implement code
+
+
 * <2024-12-24 Tue>
 
 - add formatting / linting [done]
@@ -39,8 +171,7 @@ maybe start building a proper domain model
     plant-daddy app that takes care of various plant needs.
 
     update <2025-01-07 Tue>: Kelsey already has an app that looks great for this. 
-
-
+ 
 * <2024-12-23 Mon>
 
 Next steps:
