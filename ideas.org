@@ -1,6 +1,28 @@
+* <2025-01-07 Tue>
+
+- testing new emacs config on permutation.
+- next step should be to persist the persistence layer. I'm wondering
+  if it might be beneficial to switch from H2 to sqlite
+  - talked it through with yip. Will stick with H2 since it seems to
+    be a standard with java projects and offers similar syntax to
+    postgres.
+  - update: persistence persisted.
+
+I think some of the lack of movement on this is because I don't really
+know what I'm trying to achieve.
+
+it would be good to store user logins with cookies or similar.
+
+adding honeysql for now. The idea of building up a sql query
+dynamically using pipes is enticing.
+- update honeysql added.
+
+next step: let's add more functionality. I think now is a good time to
+explore a minimal domain model and do some db modeling with yip
+  
 * <2024-12-24 Tue>
 
-- add formatting / linting
+- add formatting / linting [done]
 
 maybe start building a proper domain model
 - write up initial thoughts
@@ -15,6 +37,8 @@ maybe start building a proper domain model
     maybe add a nice scheduling system in it for reminders and
     whatnot. A cool little use case would be to also make a
     plant-daddy app that takes care of various plant needs.
+
+    update <2025-01-07 Tue>: Kelsey already has an app that looks great for this. 
 
 
 * <2024-12-23 Mon>

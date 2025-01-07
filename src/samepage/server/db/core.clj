@@ -5,15 +5,18 @@
 (defonce ^:private ds
          (jdbc/get-datasource
           {:dbtype   "h2"
-           :dbname   "./db/samepage"
+           :dbname   "file:./db/samepage"
            :user     "sa"
            :password ""}))
 
 (defn datasource []
       ds)
 
-;; 2) Create the notes table if it doesn’t already exist.
-;;    We'll store the user name directly in 'user_name' for now.
+;; 2) Create the notes table if it doesn’t already exist.  We'll store
+;;    the user name directly in 'user_name' for now. Going to avoid
+;;    adding honeysql to this as DDL's don't seem to be as well
+;;    supported and I will likely eventually move to a database
+;;    migration tool. 
 (defn create-schema!
       []
       (jdbc/execute! ds
