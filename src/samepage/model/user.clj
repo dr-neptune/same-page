@@ -19,10 +19,25 @@
         generated-id (:id (first result))]
     (assoc user-map-2 :id generated-id)))
 
-;; For the admin panel, let's add helper queries:
-(defn get-all-users
-  "Fetch all rows from users table."
-  []
+(defn get-all-users []
   (jdbc/execute! (db/datasource)
                  ["SELECT id, name, email, role, created_at, updated_at FROM users ORDER BY id"]
                  {:builder-fn rs/as-unqualified-lower-maps}))
+
+;; NEW 1: Check if user with same name OR email already exists
+(defn find-by-name-or-email
+  "Returns the user row if name OR email matches, else nil."
+  [name email]
+  (first
+   (jdbc/execute! (db/datasource)
+                  ["SELECT * FROM users WHERE name = ? OR email = ?" name email]
+                  {:builder-fn rs/as-unqualified-lower-maps})))
+
+;; NEW 2: Check if user’s email/password match an existing user
+;; In a real app, you'd hash passwords and compare hashed values.
+(defn find-by-email-and-password
+  [email password]
+  (first
+   (jdbc/execute! (db/datasource)
+                  ["SELECT * FROM users WHERE email = ? AND password = ?" email password]
+                  {:builder-fn rs/as-unqualified-lower-maps})))

@@ -87,23 +87,25 @@
      (if user (str "Welcome, " user-name) "Home - Mastery App")
      [:div {:class "max-w-2xl mx-auto bg-[#2a2136] p-6 rounded shadow-md"}
       (if-not user
-        ;; If no user logged in, prompt to register
         [:div
          [:h1 {:class "text-3xl mb-2"} "Welcome to the 10,000 Hours Mastery App"]
          [:p "Track your deliberate practice across multiple goals."]
-         [:div {:class "mt-4"}
-          ;; unify button color with purple
+         [:div {:class "mt-4 space-x-4"}
+          ;; register link
           [:a {:href "/register"
                :class "bg-purple-600 text-white py-2 px-4 rounded hover:bg-purple-700"}
-           "Register Here"]]]
-        ;; If user is logged in, show note form + table
+           "Register Here"]
+          ;; login link
+          [:a {:href "/login"
+               :class "bg-purple-600 text-white py-2 px-4 rounded hover:bg-purple-700"}
+           "Log In"]]]
+        ;; Else user is logged in
         [:div
          [:h1 {:class "text-3xl mb-4 font-bold"}
           (str "Your Notes, " user-name)]
          (note-form)
          [:div {:id "notes-table"}
           (notes-table notes)]
-         ;; Clear the textarea after partial swap
          [:script
           "document.body.addEventListener('htmx:afterSwap', function(evt) {
              if (evt.detail.target.id === 'notes-table') {
@@ -193,3 +195,31 @@
      [:a {:href "/"
           :class "bg-purple-600 text-white py-2 px-4 rounded hover:bg-purple-700"}
       "Back to Home"]]]))
+
+(defn login-page
+  [request error-message]
+  (page-layout
+   request
+   "Log In"
+   [:div {:class "max-w-md mx-auto bg-[#2a2136] p-6 rounded shadow-md"}
+    [:h1 {:class "text-3xl mb-4 font-bold"} "Log In"]
+    (when error-message
+      [:div {:class "bg-red-600 text-white p-2 rounded mb-4"}
+       error-message])
+    [:form {:action "/login" :method "post"
+            :class "space-y-4"}
+     [:div
+      [:label {:class "block font-semibold"} "Email:"]
+      [:input {:type "email"
+               :name "email"
+               :class "w-full p-2 border border-gray-300 rounded bg-[#2f2b3b] text-[#e0def2]"
+               :required true}]]
+     [:div
+      [:label {:class "block font-semibold"} "Password:"]
+      [:input {:type "password"
+               :name "password"
+               :class "w-full p-2 border border-gray-300 rounded bg-[#2f2b3b] text-[#e0def2]"
+               :required true}]]
+     [:button {:type "submit"
+               :class "bg-purple-600 text-white py-2 px-4 rounded hover:bg-purple-700"}
+      "Log In"]]]))

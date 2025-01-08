@@ -18,27 +18,58 @@
    :headers {"Content-Type" "text/html"}
    :body    (pages/register-user-page request nil)})
 
+
 (defn post-register-handler
   [_system request]
-  (let [params   (:params request)
-        name     (get params "name" "")
-        email    (get params "email" "")
-        password (get params "password" "")]
-    (if (or (str/blank? name)
-            (str/blank? email)
-            (str/blank? password))
+  (let [params    (:params request)
+        name      (get params "name" "")
+        email     (get params "email" "")
+        password  (get params "password" "")]
+
+    ;; 1) Check blanks
+    (cond
+      (str/blank? name)
       {:status 200
        :headers {"Content-Type" "text/html"}
-       :body (pages/register-user-page request "All fields (name, email, password) are required!")}
-      (let [new-user (user-model/create-user! {:name name
-                                               :email email
-                                               :password password})
-            session-user (-> new-user
-                             (select-keys [:id :name :email :role]))]
-        {:status  302
-         :headers {"Location" "/"}
-         :session (assoc (:session request) :user session-user)
-         :body    ""}))))
+       :body (pages/register-user-page
+              request
+              "Name is required!")}
+
+      (str/blank? email)
+      {:status 200
+       :headers {"Content-Type" "text/html"}
+       :body (pages/register-user-page
+              request
+              "Email is required!")}
+
+      (str/blank? password)
+      {:status 200
+       :headers {"Content-Type" "text/html"}
+       :body (pages/register-user-page
+              request
+              "Password is required!")}
+
+      :else
+      ;; 2) Check if user with same name or email exists
+      (let [existing (user-model/find-by-name-or-email name email)]
+        (if existing
+          ;; A user row with that name or email => error
+          {:status 200
+           :headers {"Content-Type" "text/html"}
+           :body (pages/register-user-page
+                  request
+                  (str "A user with name [" name
+                       "] or email [" email
+                       "] already exists!"))}
+          ;; Otherwise create user
+          (let [new-user (user-model/create-user! {:name name
+                                                   :email email
+                                                   :password password})
+                session-user (select-keys new-user [:id :name :email :role])]
+            {:status  302
+             :headers {"Location" "/"}
+             :session (assoc (:session request) :user session-user)
+             :body    ""}))))))
 
 (defn create-note-handler
   [_system request]
@@ -83,6 +114,30 @@
    :headers {"Content-Type" "text/html"}
    :body    "Not Found"})
 
+(defn get-login-handler
+  [_system request]
+  {:status 200
+   :headers {"Content-Type" "text/html"}
+   :body (pages/login-page request nil)})
+
+(defn post-login-handler
+  [_system request]
+  (let [params   (:params request)
+        email    (get params "email" "")
+        password (get params "password" "")
+        user-row (user-model/find-by-email-and-password email password)]
+    (if (nil? user-row)
+      ;; No match => re-render login page with error
+      {:status 200
+       :headers {"Content-Type" "text/html"}
+       :body (pages/login-page request "Invalid email or password.")}
+      ;; Otherwise log them in
+      (let [session-user (select-keys user-row [:id :name :email :role])]
+        {:status 302
+         :headers {"Location" "/"}
+         :session (assoc (:session request) :user session-user)
+         :body ""}))))
+
 (defn routes
   [system]
   [["/"
@@ -90,6 +145,26 @@
    ["/register"
     {:get  {:handler (partial #'get-register-handler system)}
      :post {:handler (partial #'post-register-handler system)}}]
+   ["/login"
+    {:get  {:handler (partial #'get-login-handler system)}
+     :post {:handler (partial #'post-login-handler system)}}]
+   ["/notes"
+    {:post {:handler (partial #'create-note-handler system)}}]
+   ["/create-notes"
+    {:get {:handler (partial #'new-note-handler system)}}]
+   ["/admin"
+    {:get {:handler (partial #'admin-handler system)}}]])
+
+(defn routes
+  [system]
+  [["/"
+    {:get {:handler (partial #'root-page-handler system)}}]
+   ["/register"
+    {:get  {:handler (partial #'get-register-handler system)}
+     :post {:handler (partial #'post-register-handler system)}}]
+   ["/login"
+    {:get  {:handler (partial #'get-login-handler system)}
+     :post {:handler (partial #'post-login-handler system)}}]
    ["/notes"
     {:post {:handler (partial #'create-note-handler system)}}]
    ["/create-notes"
