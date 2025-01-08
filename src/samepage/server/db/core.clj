@@ -15,7 +15,6 @@
 
 (defn create-schema!
   []
-  ;; 1) Create users table if not exists
   (let [create-users
         {:create-table [:users :if-not-exists]
          :with-columns
@@ -28,7 +27,6 @@
         [u-sql & u-params] (sql/format create-users)]
     (jdbc/execute! ds (into [u-sql] u-params)))
 
-  ;; 2) Create notes table if not exists
   (let [create-notes
         {:create-table [:notes :if-not-exists]
          :with-columns

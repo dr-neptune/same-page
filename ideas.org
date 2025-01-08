@@ -1,3 +1,11 @@
+* <2025-01-08 Wed>
+
+fix current app state [done]
+make it look more visually appealing
+continue working on the simplest domain model
+
+maybe add a much more in depth user auth
+
 * <2025-01-07 Tue>
 ** High-Level Domain & Data Model
 
@@ -170,8 +178,8 @@ maybe start building a proper domain model
     whatnot. A cool little use case would be to also make a
     plant-daddy app that takes care of various plant needs.
 
-    update <2025-01-07 Tue>: Kelsey already has an app that looks great for this. 
- 
+    update <2025-01-07 Tue>: Kelsey already has an app that looks great for this.
+
 * <2024-12-23 Mon>
 
 Next steps:

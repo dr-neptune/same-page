@@ -1,43 +1,46 @@
 (ns samepage.server.routes
   (:require [reitit.ring :as reitit-ring]
+            [hiccup2.core :refer [html]]
             [samepage.pages.pages :as pages]
             [samepage.model.user :as user-model]
             [samepage.model.model :as model]))
 
-;; GET /
 (defn root-page-handler
   [_system request]
-  {:status 200
+  {:status  200
    :headers {"Content-Type" "text/html"}
-   :body (pages/root-page request)})
+   :body    (pages/root-page request)})
 
-;; GET /register
 (defn get-register-handler
   [_system request]
-  {:status 200
+  {:status  200
    :headers {"Content-Type" "text/html"}
-   :body (pages/register-user-page request)})
+   :body    (pages/register-user-page request nil)})
 
-;; POST /register
 (defn post-register-handler
   [_system request]
   (let [params   (:params request)
-        name     (get params "name")
-        email    (get params "email")
-        password (get params "password")
-        new-user (user-model/create-user! {:name name
-                                           :email email
-                                           :password password})]
-    ;; store minimal info in session
-    (let [session-user {:id    (:id new-user)
-                        :name  (:name new-user)
-                        :email (:email new-user)}]
-      {:status  302
-       :headers {"Location" "/"}
-       :session (assoc (:session request) :user session-user)
-       :body    ""})))
-
-;; The older "notes" handlers
+        name     (get params "name" "")
+        email    (get params "email" "")
+        password (get params "password" "")]
+    (if (or (clojure.string/blank? name)
+            (clojure.string/blank? email)
+            (clojure.string/blank? password))
+      ;; If any field is blank, re-render the register page with an error
+      {:status 200
+       :headers {"Content-Type" "text/html"}
+       :body (pages/register-user-page request
+                                       "All fields (name, email, password) are required!")}
+      (let [new-user (user-model/create-user! {:name name
+                                               :email email
+                                               :password password})
+            session-user {:id    (:id new-user)
+                          :name  (:name new-user)
+                          :email (:email new-user)}]
+        {:status  302
+         :headers {"Location" "/"}
+         :session (assoc (:session request) :user session-user)
+         :body    ""}))))
 
 (defn create-note-handler
   [_system request]
@@ -45,14 +48,12 @@
         user-name (get-in session [:user :name] "Anonymous")
         note-text (get-in request [:params "note-text"] "")]
     (model/create-note! user-name note-text)
-    ;; Return updated notes partial
     (let [notes (model/get-notes-for-user user-name)]
       {:status  200
        :headers {"Content-Type" "text/html"}
        :session session
-       :body    (str (pages/notes-table notes))})))
+       :body    (str (html (pages/notes-table notes)))})))
 
-;; If you want a dedicated "/create-notes" page (optional):
 (defn new-note-handler
   [_system request]
   (let [session   (:session request)
@@ -66,7 +67,7 @@
   [_request]
   {:status 404
    :headers {"Content-Type" "text/html"}
-   :body "Not Found"})
+   :body    "Not Found"})
 
 (defn routes
   [system]
@@ -75,10 +76,10 @@
    ["/register"
     {:get  {:handler (partial #'get-register-handler system)}
      :post {:handler (partial #'post-register-handler system)}}]
-   ["/create-notes"
-    {:get {:handler (partial #'new-note-handler system)}}]   ;; optional
    ["/notes"
-    {:post {:handler (partial #'create-note-handler system)}}]])
+    {:post {:handler (partial #'create-note-handler system)}}]
+   ["/create-notes"
+    {:get {:handler (partial #'new-note-handler system)}}]])
 
 (defn root-handler
   [system request]
