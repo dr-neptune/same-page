@@ -5,7 +5,7 @@
         ring/ring {:mvn/version "1.13.0"}
         metosin/reitit-ring {:mvn/version "0.7.2"}
         hiccup/hiccup {:mvn/version "2.0.0-RC3"}
-        ;; here's HoneySQL from Clojars
+        buddy/buddy-hashers {:mvn/version "1.8.158"}
         com.github.seancorfield/honeysql {:mvn/version "2.6.1203"}}
 
  ;; Add this so the CLI knows about the Clojars repo:

@@ -125,7 +125,7 @@
   (let [params   (:params request)
         email    (get params "email" "")
         password (get params "password" "")
-        user-row (user-model/find-by-email-and-password email password)]
+        user-row (user-model/find-by-email-and-check email password)]
     (if (nil? user-row)
       ;; No match => re-render login page with error
       {:status 200
@@ -140,11 +140,28 @@
 
 (defn logout-handler
   [_system request]
-  {:status 302
-   :headers {"Location" "/"}
-   ;; remove user from session
-   :session (dissoc (:session request) :user)
-   :body ""})
+  (let [session (dissoc (:session request) :user)]
+    {:status 200
+     :headers {"Content-Type" "text/html"}
+     :session session
+     :body
+     (str
+       (html
+         [:html
+          [:head
+           [:title "Logged Out"]
+           ;; auto-refresh home after 2 seconds:
+           [:meta {:http-equiv "refresh" :content "2;url=/"}]
+           ;; load Tailwind for nicer styling
+           [:script {:src "https://cdn.tailwindcss.com"}]]
+          ;; Body w/ a dark background, white text, etc.
+          [:body
+           {:class "min-h-screen flex flex-col items-center justify-center bg-[#1e1e28] text-[#e0def2]"}
+           [:div {:class "max-w-lg mx-auto bg-[#2a2136] p-6 rounded shadow-md text-center"}
+            [:h1 {:class "text-3xl mb-2 font-bold"} "You have been logged out."]
+            [:p {:class "mb-4"} "Redirecting to the home page shortly..."]
+            ;; A small spinning loader for visual feedback:
+            [:div {:class "mx-auto animate-spin h-8 w-8 border-4 border-purple-500 border-t-transparent rounded-full"}]]]]))}))
 
 (defn routes
   [system]

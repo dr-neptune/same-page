@@ -79,32 +79,37 @@
     "Create Note"]])
 
 (defn root-page
-  [request]
+    [request]
   (let [session   (:session request)
         user      (:user session)
-        user-name (:name user)
-        notes     (when user (model/get-notes-for-user user-name))]
+        user-name (get user :name)
+        notes     (when user (model/get-notes-for-user user-name))
+        query     (:query-params request)
+        logged-out? (some? (get query "logged_out"))]
     (page-layout
      request
      (if user (str "Welcome, " user-name) "Home - Mastery App")
      [:div {:class "max-w-2xl mx-auto bg-[#2a2136] p-6 rounded shadow-md"}
+
+      ;; Show a dismissable "You have been logged out" message if logged_out=true
+      (when logged-out?
+        [:div {:class "bg-green-600 text-white p-2 rounded mb-4"}
+         "You have been logged out successfully."])
+
       (if-not user
         [:div
          [:h1 {:class "text-3xl mb-2"} "Welcome to the 10,000 Hours Mastery App"]
          [:p "Track your deliberate practice across multiple goals."]
          [:div {:class "mt-4 space-x-4"}
-          ;; register link
           [:a {:href "/register"
                :class "bg-purple-600 text-white py-2 px-4 rounded hover:bg-purple-700"}
            "Register Here"]
-          ;; login link
           [:a {:href "/login"
                :class "bg-purple-600 text-white py-2 px-4 rounded hover:bg-purple-700"}
            "Log In"]]]
-        ;; Else user is logged in
+        ;; If user is logged in, show notes, forms, etc.
         [:div
-         [:h1 {:class "text-3xl mb-4 font-bold"}
-          (str "Your Notes, " user-name)]
+         [:h1 {:class "text-3xl mb-4 font-bold"} (str "Your Notes, " user-name)]
          (note-form)
          [:div {:id "notes-table"}
           (notes-table notes)]
