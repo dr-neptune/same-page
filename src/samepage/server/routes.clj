@@ -138,22 +138,13 @@
          :session (assoc (:session request) :user session-user)
          :body ""}))))
 
-(defn routes
-  [system]
-  [["/"
-    {:get {:handler (partial #'root-page-handler system)}}]
-   ["/register"
-    {:get  {:handler (partial #'get-register-handler system)}
-     :post {:handler (partial #'post-register-handler system)}}]
-   ["/login"
-    {:get  {:handler (partial #'get-login-handler system)}
-     :post {:handler (partial #'post-login-handler system)}}]
-   ["/notes"
-    {:post {:handler (partial #'create-note-handler system)}}]
-   ["/create-notes"
-    {:get {:handler (partial #'new-note-handler system)}}]
-   ["/admin"
-    {:get {:handler (partial #'admin-handler system)}}]])
+(defn logout-handler
+  [_system request]
+  {:status 302
+   :headers {"Location" "/"}
+   ;; remove user from session
+   :session (dissoc (:session request) :user)
+   :body ""})
 
 (defn routes
   [system]
@@ -165,6 +156,8 @@
    ["/login"
     {:get  {:handler (partial #'get-login-handler system)}
      :post {:handler (partial #'post-login-handler system)}}]
+   ["/logout"
+    {:get {:handler (partial #'logout-handler system)}}]
    ["/notes"
     {:post {:handler (partial #'create-note-handler system)}}]
    ["/create-notes"

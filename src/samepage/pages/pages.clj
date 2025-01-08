@@ -31,7 +31,9 @@
                       (when is-admin?
                         [:a {:href "/admin"
                              :class "underline ml-4"}
-                         "[Admin Panel]"])])]
+                         "[Admin Panel]"])
+                      (when user
+                        [:a {:href "/logout" :class "underline ml-4"} "[Logout]"])])]
     (html5
      [:head
       [:meta {:charset "utf-8"}]
