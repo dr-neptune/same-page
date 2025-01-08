@@ -6,18 +6,23 @@
             [honey.sql.helpers :as h]))
 
 (defn create-user!
-  "Insert a user row into DB, returning the created user (including auto-generated :id)."
+  "Insert a user row with :role = 'admin' by default."
   [{:keys [name email password] :as user-map}]
-  ;; Build INSERT statement
-  (let [insert-query (-> (h/insert-into :users)
-                         (h/values [user-map])  ; user-map has name, email, password
+  (let [user-map-2 (assoc user-map :role "admin")
+        insert-query (-> (h/insert-into :users)
+                         (h/values [user-map-2])
                          (sql/format))
-        ;; Execute with :return-generated-keys => returns a vector with a map that includes :id
         result (jdbc/execute! (db/datasource)
                               insert-query
                               {:return-generated-keys true
                                :builder-fn rs/as-unqualified-lower-maps})
         generated-id (:id (first result))]
-    ;; Merge the newly generated ID with the original user data so we have
-    ;; {:id ..., :name "X", :email "Y", :password "Z"}
-    (assoc user-map :id generated-id)))
+    (assoc user-map-2 :id generated-id)))
+
+;; For the admin panel, let's add helper queries:
+(defn get-all-users
+  "Fetch all rows from users table."
+  []
+  (jdbc/execute! (db/datasource)
+                 ["SELECT id, name, email, role, created_at, updated_at FROM users ORDER BY id"]
+                 {:builder-fn rs/as-unqualified-lower-maps}))

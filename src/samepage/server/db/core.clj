@@ -6,7 +6,7 @@
 (defonce ^:private ds
   (jdbc/get-datasource
     {:dbtype "h2"
-     :dbname "file:./db/samepage;DB_CLOSE_DELAY=-1"
+     :dbname "./db/samepage;DB_CLOSE_DELAY=-1"
      :user   "sa"
      :password ""}))
 
@@ -15,6 +15,7 @@
 
 (defn create-schema!
   []
+  ;; 1) Create users if not exists
   (let [create-users
         {:create-table [:users :if-not-exists]
          :with-columns
@@ -22,11 +23,13 @@
           [:name     [:varchar 255] :not-null]
           [:email    [:varchar 255] :not-null]
           [:password [:varchar 255] :not-null]
+          [:role     [:varchar 50] :not-null [:raw "DEFAULT 'admin'"]] ;; new role column
           [:created_at  :timestamp :not-null [:raw "DEFAULT CURRENT_TIMESTAMP"]]
           [:updated_at  :timestamp :not-null [:raw "DEFAULT CURRENT_TIMESTAMP"]]]}
         [u-sql & u-params] (sql/format create-users)]
     (jdbc/execute! ds (into [u-sql] u-params)))
 
+  ;; 2) Create notes if not exists
   (let [create-notes
         {:create-table [:notes :if-not-exists]
          :with-columns

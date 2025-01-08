@@ -42,3 +42,10 @@
                    honey-query
                    {:builder-fn rs/as-unqualified-lower-maps
                     :return-lob-strings? true})))
+
+(defn get-all-notes
+  "Fetch all rows from notes table for the admin panel."
+  []
+  (jdbc/execute! (db/datasource)
+                 ["SELECT id, user_name, text, created_at FROM notes ORDER BY id"]
+                 {:builder-fn rs/as-unqualified-lower-maps}))

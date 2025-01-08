@@ -5,6 +5,8 @@ make it look more visually appealing
 continue working on the simplest domain model
 
 maybe add a much more in depth user auth
+maybe add a db view page so I can see current state of each table
+
 
 * <2025-01-07 Tue>
 ** High-Level Domain & Data Model

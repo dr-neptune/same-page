@@ -3,7 +3,8 @@
             [hiccup2.core :refer [html]]
             [samepage.pages.pages :as pages]
             [samepage.model.user :as user-model]
-            [samepage.model.model :as model]))
+            [samepage.model.model :as model]
+            [clojure.string :as str]))
 
 (defn root-page-handler
   [_system request]
@@ -23,20 +24,17 @@
         name     (get params "name" "")
         email    (get params "email" "")
         password (get params "password" "")]
-    (if (or (clojure.string/blank? name)
-            (clojure.string/blank? email)
-            (clojure.string/blank? password))
-      ;; If any field is blank, re-render the register page with an error
+    (if (or (str/blank? name)
+            (str/blank? email)
+            (str/blank? password))
       {:status 200
        :headers {"Content-Type" "text/html"}
-       :body (pages/register-user-page request
-                                       "All fields (name, email, password) are required!")}
+       :body (pages/register-user-page request "All fields (name, email, password) are required!")}
       (let [new-user (user-model/create-user! {:name name
                                                :email email
                                                :password password})
-            session-user {:id    (:id new-user)
-                          :name  (:name new-user)
-                          :email (:email new-user)}]
+            session-user (-> new-user
+                             (select-keys [:id :name :email :role]))]
         {:status  302
          :headers {"Location" "/"}
          :session (assoc (:session request) :user session-user)
@@ -63,6 +61,22 @@
      :headers {"Content-Type" "text/html"}
      :body (pages/new-note-page notes user-name)}))
 
+;; -------------- NEW Admin Handler --------------
+(defn admin-handler
+  [_system request]
+  (let [session   (:session request)
+        user      (:user session)]
+    (if (and user (= "admin" (:role user)))
+      (let [all-users (user-model/get-all-users)
+            all-notes (model/get-all-notes)]
+        {:status 200
+         :headers {"Content-Type" "text/html"}
+         :body (pages/admin-page request all-users all-notes)})
+      ;; Not admin => 404 or redirect
+      {:status 404
+       :headers {"Content-Type" "text/html"}
+       :body "Not Found"})))
+
 (defn not-found-handler
   [_request]
   {:status 404
@@ -79,7 +93,9 @@
    ["/notes"
     {:post {:handler (partial #'create-note-handler system)}}]
    ["/create-notes"
-    {:get {:handler (partial #'new-note-handler system)}}]])
+    {:get {:handler (partial #'new-note-handler system)}}]
+   ["/admin"
+    {:get {:handler (partial #'admin-handler system)}}]])
 
 (defn root-handler
   [system request]
