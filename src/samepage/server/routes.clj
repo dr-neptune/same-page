@@ -1,67 +1,80 @@
 (ns samepage.server.routes
   (:require [reitit.ring :as reitit-ring]
-            [hiccup2.core :refer [html]]
-            [samepage.pages.pages :as pages]
-            [samepage.model.user :as user-model]
-            [samepage.model.model :as model]
-            [clojure.string :as str]))
+            [hiccup2.core :refer [html]]             ;; for partial HTML rendering
+            [clojure.string :as str]
 
+            ;; Models
+            [samepage.model.user :as user-model]
+            [samepage.model.model :as note-model]
+            [samepage.model.goal :as goal-model]
+
+            ;; Pages (split by feature)
+            [samepage.pages.home :as home]
+            [samepage.pages.auth :as auth]
+            [samepage.pages.notes :as notes]
+            [samepage.pages.goals :as goals]
+            [samepage.pages.admin :as admin]))
+
+;; For a 404 fallback
+(defn not-found-handler
+  [_request]
+  {:status 404
+   :headers {"Content-Type" "text/html"}
+   :body    "Not Found"})
+
+;; ----------------------
+;; Root (Home) Page
+;; ----------------------
 (defn root-page-handler
   [_system request]
   {:status  200
    :headers {"Content-Type" "text/html"}
-   :body    (pages/root-page request)})
+   :body    (home/root-page request)})
 
+;; ----------------------
+;; Registration
+;; ----------------------
 (defn get-register-handler
   [_system request]
-  {:status  200
+  {:status 200
    :headers {"Content-Type" "text/html"}
-   :body    (pages/register-user-page request nil)})
-
+   :body   (auth/register-user-page request nil)})
 
 (defn post-register-handler
   [_system request]
-  (let [params    (:params request)
-        name      (get params "name" "")
-        email     (get params "email" "")
-        password  (get params "password" "")]
+  (let [params   (:params request)
+        name     (get params "name" "")
+        email    (get params "email" "")
+        password (get params "password" "")]
 
-    ;; 1) Check blanks
+    ;; check for blank fields
     (cond
       (str/blank? name)
       {:status 200
        :headers {"Content-Type" "text/html"}
-       :body (pages/register-user-page
-              request
-              "Name is required!")}
+       :body (auth/register-user-page request "Name is required!")}
 
       (str/blank? email)
       {:status 200
        :headers {"Content-Type" "text/html"}
-       :body (pages/register-user-page
-              request
-              "Email is required!")}
+       :body (auth/register-user-page request "Email is required!")}
 
       (str/blank? password)
       {:status 200
        :headers {"Content-Type" "text/html"}
-       :body (pages/register-user-page
-              request
-              "Password is required!")}
+       :body (auth/register-user-page request "Password is required!")}
 
       :else
-      ;; 2) Check if user with same name or email exists
       (let [existing (user-model/find-by-name-or-email name email)]
         (if existing
-          ;; A user row with that name or email => error
+          ;; user row with same name/email => error
           {:status 200
            :headers {"Content-Type" "text/html"}
-           :body (pages/register-user-page
+           :body (auth/register-user-page
                   request
                   (str "A user with name [" name
                        "] or email [" email
                        "] already exists!"))}
-          ;; Otherwise create user
           (let [new-user (user-model/create-user! {:name name
                                                    :email email
                                                    :password password})
@@ -71,72 +84,31 @@
              :session (assoc (:session request) :user session-user)
              :body    ""}))))))
 
-(defn create-note-handler
-  [_system request]
-  (let [session   (:session request)
-        user-name (get-in session [:user :name] "Anonymous")
-        note-text (get-in request [:params "note-text"] "")]
-    (model/create-note! user-name note-text)
-    (let [notes (model/get-notes-for-user user-name)]
-      {:status  200
-       :headers {"Content-Type" "text/html"}
-       :session session
-       :body    (str (html (pages/notes-table notes)))})))
-
-(defn new-note-handler
-  [_system request]
-  (let [session   (:session request)
-        user-name (get-in session [:user :name] "Guest")
-        notes     (model/get-notes-for-user user-name)]
-    {:status 200
-     :headers {"Content-Type" "text/html"}
-     :body (pages/new-note-page notes user-name)}))
-
-;; -------------- NEW Admin Handler --------------
-(defn admin-handler
-  [_system request]
-  (let [session   (:session request)
-        user      (:user session)]
-    (if (and user (= "admin" (:role user)))
-      (let [all-users (user-model/get-all-users)
-            all-notes (model/get-all-notes)]
-        {:status 200
-         :headers {"Content-Type" "text/html"}
-         :body (pages/admin-page request all-users all-notes)})
-      ;; Not admin => 404 or redirect
-      {:status 404
-       :headers {"Content-Type" "text/html"}
-       :body "Not Found"})))
-
-(defn not-found-handler
-  [_request]
-  {:status 404
-   :headers {"Content-Type" "text/html"}
-   :body    "Not Found"})
-
+;; ----------------------
+;; Login / Logout
+;; ----------------------
 (defn get-login-handler
   [_system request]
   {:status 200
    :headers {"Content-Type" "text/html"}
-   :body (pages/login-page request nil)})
+   :body   (auth/login-page request nil)})
 
 (defn post-login-handler
   [_system request]
-  (let [params   (:params request)
-        email    (get params "email" "")
-        password (get params "password" "")
-        user-row (user-model/find-by-email-and-check email password)]
+  (let [params     (:params request)
+        email      (get params "email" "")
+        password   (get params "password" "")
+        user-row   (user-model/find-by-email-and-check email password)]
     (if (nil? user-row)
-      ;; No match => re-render login page with error
+      ;; re-render login with error
       {:status 200
        :headers {"Content-Type" "text/html"}
-       :body (pages/login-page request "Invalid email or password.")}
-      ;; Otherwise log them in
+       :body (auth/login-page request "Invalid email or password.")}
       (let [session-user (select-keys user-row [:id :name :email :role])]
         {:status 302
          :headers {"Location" "/"}
          :session (assoc (:session request) :user session-user)
-         :body ""}))))
+         :body    ""}))))
 
 (defn logout-handler
   [_system request]
@@ -150,19 +122,96 @@
          [:html
           [:head
            [:title "Logged Out"]
-           ;; auto-refresh home after 2 seconds:
            [:meta {:http-equiv "refresh" :content "2;url=/"}]
-           ;; load Tailwind for nicer styling
            [:script {:src "https://cdn.tailwindcss.com"}]]
-          ;; Body w/ a dark background, white text, etc.
           [:body
            {:class "min-h-screen flex flex-col items-center justify-center bg-[#1e1e28] text-[#e0def2]"}
            [:div {:class "max-w-lg mx-auto bg-[#2a2136] p-6 rounded shadow-md text-center"}
             [:h1 {:class "text-3xl mb-2 font-bold"} "You have been logged out."]
             [:p {:class "mb-4"} "Redirecting to the home page shortly..."]
-            ;; A small spinning loader for visual feedback:
             [:div {:class "mx-auto animate-spin h-8 w-8 border-4 border-purple-500 border-t-transparent rounded-full"}]]]]))}))
 
+;; ----------------------
+;; Notes
+;; ----------------------
+(defn create-note-handler
+  [_system request]
+  (let [session   (:session request)
+        user-name (get-in session [:user :name] "Anonymous")
+        note-text (get-in request [:params "note-text"] "")]
+    (note-model/create-note! user-name note-text)
+    (let [notes (note-model/get-notes-for-user user-name)]
+      {:status  200
+       :headers {"Content-Type" "text/html"}
+       :session session
+       :body    (str (html (notes/notes-table notes)))})))
+
+(defn new-note-handler
+  [_system request]
+  (let [session   (:session request)
+        user-name (get-in session [:user :name] "Guest")
+        notes     (note-model/get-notes-for-user user-name)]
+    {:status 200
+     :headers {"Content-Type" "text/html"}
+     :body (notes/new-note-page notes user-name)}))
+
+;; ----------------------
+;; Goals
+;; ----------------------
+(defn get-goals-handler
+  [_system request]
+  (let [user-id (get-in request [:session :user :id])]
+    (if (nil? user-id)
+      {:status 302
+       :headers {"Location" "/login"}
+       :body ""}
+      (let [gs (goal-model/get-goals-for-user user-id)]
+        {:status 200
+         :headers {"Content-Type" "text/html"}
+         :body (goals/goals-page request gs)}))))
+
+(defn post-goals-handler
+  [_system request]
+  (let [params   (:params request)
+        user     (get-in request [:session :user])
+        user-id  (:id user)]
+    (if (nil? user)
+      {:status 302
+       :headers {"Location" "/login"}
+       :body ""}
+      (let [title        (get params "title" "")
+            description  (get params "description" "")
+            target-hours (some-> (get params "target_hours" "")
+                                 not-empty
+                                 (Integer/parseInt))]
+        (goal-model/create-goal! {:user-id user-id
+                                  :title title
+                                  :description description
+                                  :target_hours target-hours})
+        {:status 302
+         :headers {"Location" "/"}
+         :body ""}))))
+
+;; ----------------------
+;; Admin
+;; ----------------------
+(defn admin-handler
+  [_system request]
+  (let [session   (:session request)
+        user      (:user session)]
+    (if (and user (= "admin" (:role user)))
+      (let [all-users (user-model/get-all-users)
+            all-notes (note-model/get-all-notes)]
+        {:status 200
+         :headers {"Content-Type" "text/html"}
+         :body (admin/admin-page request all-users all-notes)})
+      {:status 404
+       :headers {"Content-Type" "text/html"}
+       :body "Not Found"})))
+
+;; ----------------------
+;; The routes
+;; ----------------------
 (defn routes
   [system]
   [["/"
@@ -179,6 +228,9 @@
     {:post {:handler (partial #'create-note-handler system)}}]
    ["/create-notes"
     {:get {:handler (partial #'new-note-handler system)}}]
+   ["/goals"
+    {:get  {:handler (partial #'get-goals-handler system)}   ;; optional "GET /goals"
+     :post {:handler (partial #'post-goals-handler system)}}]
    ["/admin"
     {:get {:handler (partial #'admin-handler system)}}]])
 

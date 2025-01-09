@@ -5,10 +5,10 @@
 
 (defonce ^:private ds
   (jdbc/get-datasource
-    {:dbtype "h2"
-     :dbname "./db/samepage;DB_CLOSE_DELAY=-1"
-     :user   "sa"
-     :password ""}))
+   {:dbtype "h2"
+    :dbname "./db/samepage;DB_CLOSE_DELAY=-1"
+    :user   "sa"
+    :password ""}))
 
 (defn datasource []
   ds)
@@ -39,4 +39,21 @@
           [:created_at :timestamp :not-null
            [:raw "DEFAULT CURRENT_TIMESTAMP"]]]}
         [n-sql & n-params] (sql/format create-notes)]
-    (jdbc/execute! ds (into [n-sql] n-params))))
+    (jdbc/execute! ds (into [n-sql] n-params)))
+
+  ;; 3) Create goals table if not exists
+  (let [create-goals
+        {:create-table [:goals :if-not-exists]
+         :with-columns
+         [[:id :identity :primary-key]
+          [:user_id :bigint]   ;; references users.id
+          [:title [:varchar 255] :not-null]
+          [:description :text]
+          ;; optional target_hours (int):
+          [:target_hours :int] ;; or :decimal if you want decimals
+          [:created_at :timestamp :not-null
+           [:raw "DEFAULT CURRENT_TIMESTAMP"]]
+          [:updated_at :timestamp :not-null
+           [:raw "DEFAULT CURRENT_TIMESTAMP"]]]}
+        [g-sql & g-params] (sql/format create-goals)]
+    (jdbc/execute! ds (into [g-sql] g-params))))

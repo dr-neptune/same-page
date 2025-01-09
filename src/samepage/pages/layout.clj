@@ -1,0 +1,46 @@
+(ns samepage.pages.layout
+  (:require [hiccup.page :refer [html5]])
+  (:import (java.sql Timestamp)
+           (java.time.format DateTimeFormatter)
+           (java.time ZoneId)))
+
+(defn format-timestamp
+  "Format a java.sql.Timestamp with the given pattern."
+  [^Timestamp ts]
+  (let [formatter (DateTimeFormatter/ofPattern "yyyy-MM-dd HH:mm")
+        instant   (.toInstant ts)
+        zdt       (.atZone instant (ZoneId/systemDefault))]
+    (.format zdt formatter)))
+
+(defn page-layout
+  "Common layout. If user is logged in, display top bar w/ admin link if role=admin."
+  [request title & body-content]
+  (let [session    (:session request)
+        user       (:user session)
+        is-admin?  (= "admin" (:role user))
+        user-info  (when user
+                     [:div {:class "text-right p-2 bg-[#2a2136] mb-6"}
+                      [:span (str "Logged in as: "
+                                  (or (:name user) "???")
+                                  " ("
+                                  (or (:email user) "???")
+                                  ") ")]
+                      (when is-admin?
+                        [:a {:href "/admin"
+                             :class "underline ml-4"}
+                         "[Admin Panel]"])
+                      (when user
+                        [:a {:href "/logout" :class "underline ml-4"} "[Logout]"])])]
+    (html5
+     [:head
+      [:meta {:charset "utf-8"}]
+      [:meta {:name "viewport" :content "width=device-width, initial-scale=1.0"}]
+      [:title title]
+      ;; Tailwind / HTMX
+      [:script {:src "https://cdn.tailwindcss.com"}]
+      [:script {:src "https://unpkg.com/htmx.org@1.9.2"}]]
+     [:body
+      {:class "min-h-screen p-8 bg-[#1e1e28] text-[#e0def2]"}
+      user-info
+      body-content])))
+

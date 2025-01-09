@@ -1,3 +1,7 @@
+* <2025-01-09 Thu>
+
+I think we can start adding more of the domain features
+
 * <2025-01-08 Wed>
 
 fix current app state [done]
