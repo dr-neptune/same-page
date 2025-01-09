@@ -2,6 +2,11 @@
 
 I think we can start adding more of the domain features
 
+started adding goals
+
+I also split up the pages file. We should probably also split up the
+routes file
+
 * <2025-01-08 Wed>
 
 fix current app state [done]
@@ -10,7 +15,6 @@ continue working on the simplest domain model
 
 maybe add a much more in depth user auth
 maybe add a db view page so I can see current state of each table
-
 
 * <2025-01-07 Tue>
 ** High-Level Domain & Data Model

@@ -37,7 +37,26 @@
                        :updated_at)
             (h/from :goals)
             (h/where [:= :user_id user-id])
-            (h/order-by [:created_at :desc])  ;; important fix
+            (h/order-by [:created_at :desc])
             (sql/format))]
     (jdbc/execute! (db/datasource) select-query
+                   {:builder-fn rs/as-unqualified-lower-maps})))
+
+;; NEW: Using HoneySQL for the admin panel to fetch every goal row
+(defn get-all-goals
+  "Fetch every goal row in 'goals', sorted by ID ascending, using HoneySQL."
+  []
+  (let [select-query
+        (-> (h/select :id
+                       :user_id
+                       :title
+                       :description
+                       :target_hours
+                       :created_at
+                       :updated_at)
+            (h/from :goals)
+            (h/order-by [:id :asc])
+            (sql/format))]
+    (jdbc/execute! (db/datasource)
+                   select-query
                    {:builder-fn rs/as-unqualified-lower-maps})))

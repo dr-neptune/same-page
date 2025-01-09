@@ -201,10 +201,13 @@
         user      (:user session)]
     (if (and user (= "admin" (:role user)))
       (let [all-users (user-model/get-all-users)
-            all-notes (note-model/get-all-notes)]
+            all-notes (note-model/get-all-notes)
+            ;; NEW: fetch all goals too
+            all-goals (goal-model/get-all-goals)]
         {:status 200
          :headers {"Content-Type" "text/html"}
-         :body (admin/admin-page request all-users all-notes)})
+         ;; pass all-goals into admin-page
+         :body (admin/admin-page request all-users all-notes all-goals)})
       {:status 404
        :headers {"Content-Type" "text/html"}
        :body "Not Found"})))

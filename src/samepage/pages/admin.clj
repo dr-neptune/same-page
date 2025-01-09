@@ -14,23 +14,31 @@
     (for [row rows]
       [:tr {:class "hover:bg-[#3b2a40]"}
        (for [col columns]
-         [:td {:class "py-2 px-4 border-b border-gray-600"} 
+         [:td {:class "py-2 px-4 border-b border-gray-600"}
           (str (get row col))])])]])
 
 (defn admin-page
-  "Show all users and notes, plus a link back to root."
-  [request users notes]
+  "Show all users, notes, and goals, plus link back to root."
+  [request users notes goals]
   (layout/page-layout
    request
    "Admin Panel"
    [:div {:class "max-w-3xl mx-auto bg-[#2a2136] p-6 rounded shadow-md"}
     [:h1 {:class "text-3xl mb-4 font-bold"} "Admin Control Panel"]
     [:p "Here is the current state of each database table."]
+    ;; Users
     [:h2 {:class "text-xl mt-6 mb-2 font-semibold"} "Users"]
     (admin-table users [:id :name :email :role :created_at :updated_at])
+
+    ;; Notes
     [:h2 {:class "text-xl mt-6 mb-2 font-semibold"} "Notes"]
     (admin-table notes [:id :user_name :text :created_at])
-    ;; link back home
+
+    ;; NEW: Goals
+    [:h2 {:class "text-xl mt-6 mb-2 font-semibold"} "Goals"]
+    (admin-table goals [:id :user_id :title :description :target_hours :created_at :updated_at])
+
+    ;; Link back home
     [:div {:class "mt-6"}
      [:a {:href "/"
           :class "bg-purple-600 text-white py-2 px-4 rounded hover:bg-purple-700"}
