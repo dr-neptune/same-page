@@ -41,6 +41,7 @@
         [n-sql & n-params] (sql/format create-notes)]
     (jdbc/execute! ds (into [n-sql] n-params)))
 
+  
   ;; 3) Create goals table if not exists
   (let [create-goals
         {:create-table [:goals :if-not-exists]
@@ -49,11 +50,10 @@
           [:user_id :bigint]   ;; references users.id
           [:title [:varchar 255] :not-null]
           [:description :text]
-          ;; optional target_hours (int):
-          [:target_hours :int] ;; or :decimal if you want decimals
-          [:created_at :timestamp :not-null
-           [:raw "DEFAULT CURRENT_TIMESTAMP"]]
-          [:updated_at :timestamp :not-null
-           [:raw "DEFAULT CURRENT_TIMESTAMP"]]]}
+          [:target_hours :int]
+          ;; NEW: progress_hours, default 0
+          [:progress_hours :int :not-null [:raw "DEFAULT 0"]]
+          [:created_at :timestamp :not-null [:raw "DEFAULT CURRENT_TIMESTAMP"]]
+          [:updated_at :timestamp :not-null [:raw "DEFAULT CURRENT_TIMESTAMP"]]]}
         [g-sql & g-params] (sql/format create-goals)]
     (jdbc/execute! ds (into [g-sql] g-params))))

@@ -172,25 +172,44 @@
 
 (defn post-goals-handler
   [_system request]
-  (let [params   (:params request)
-        user     (get-in request [:session :user])
-        user-id  (:id user)]
+  (let [params       (:params request)
+        user         (get-in request [:session :user])
+        user-id      (:id user)]
     (if (nil? user)
-      {:status 302
-       :headers {"Location" "/login"}
-       :body ""}
+      {:status 302 :headers {"Location" "/login"} :body ""}
       (let [title        (get params "title" "")
             description  (get params "description" "")
             target-hours (some-> (get params "target_hours" "")
                                  not-empty
+                                 (Integer/parseInt))
+            progress-hrs (some-> (get params "progress_hours" "")
+                                 not-empty
                                  (Integer/parseInt))]
-        (goal-model/create-goal! {:user-id user-id
-                                  :title title
-                                  :description description
-                                  :target_hours target-hours})
+        (goal-model/create-goal! {:user-id       user-id
+                                  :title         title
+                                  :description   description
+                                  :target_hours  target-hours
+                                  :progress_hours progress-hrs})
         {:status 302
          :headers {"Location" "/"}
-         :body ""}))))
+         :body    ""}))))
+
+(defn get-goal-detail-handler
+  [_system request]
+  (let [goal-id (some-> (get-in request [:path-params :id]) (Integer/parseInt))
+        goal    (goal-model/get-goal-by-id goal-id)]
+    (if (nil? goal)
+      {:status 404
+       :headers {"Content-Type" "text/plain"}
+       :body "Goal not found"}
+      ;; Return a partial snippet <td> for insertion
+      {:status 200
+       :headers {"Content-Type" "text/html"}
+       :body (str
+              (html
+                [:td {:colspan "3" :class "p-4"}
+                 [:p [:strong "Description: "] (or (:description goal) "No description.")]
+                 [:p (str "Last update: " (:updated_at goal))]]))})))
 
 ;; ----------------------
 ;; Admin
@@ -234,6 +253,8 @@
    ["/goals"
     {:get  {:handler (partial #'get-goals-handler system)}   ;; optional "GET /goals"
      :post {:handler (partial #'post-goals-handler system)}}]
+   ["/goals/desc/:id"
+    {:get {:handler (partial #'get-goal-detail-handler system)}}]
    ["/admin"
     {:get {:handler (partial #'admin-handler system)}}]])
 
