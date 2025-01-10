@@ -1,36 +1,33 @@
 (ns samepage.server.system
-  (:require [ring.adapter.jetty :as jetty]
+  (:require [samepage.server.routes.core :as routes]
+            [samepage.server.db.core :as db]
+            [ring.adapter.jetty :as jetty]
             [ring.middleware.params :refer [wrap-params]]
-            [ring.middleware.session :refer [wrap-session]]
-            [samepage.server.routes :as routes]
-            [samepage.server.db.core :as db])
-  (:import (org.eclipse.jetty.server Server)))
-
-(set! *warn-on-reflection* true)
+            [ring.middleware.session :refer [wrap-session]]))
 
 (defn make-app
   [system]
   (-> (partial #'routes/root-handler system)
-      (wrap-params)
-      (wrap-session)))
+      wrap-params
+      wrap-session))
 
 (defn start-server
   [system]
   (jetty/run-jetty
    (make-app system)
-   {:port 9999
-    :join? false}))
+   {:port 9999 :join? false}))
 
 (defn stop-server
   [server]
-  (Server/.stop server))
+  (.stop server))
 
 (defn start-system
   []
-  (let [system-state {}]
-    (db/create-schema!)
-    {::server (start-server system-state)}))
+  (db/create-schema!)
+  (let [server (start-server {})]
+    {:server server}))
 
 (defn stop-system
   [system]
-  (stop-server (::server system)))
+  (when-let [^org.eclipse.jetty.server.Server s (:server system)]
+    (.stop s)))
