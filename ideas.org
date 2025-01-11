@@ -10,6 +10,9 @@ to be cleaned up with look and feel
 Maybe next time we continue on with the domain model, and also add
 deletion of notes and goals / progress
 
+in the admin tables, can we provide a select box for different users
+data? Include one for all users as well
+
 * <2025-01-09 Thu>
 
 I think we can start adding more of the domain features
