@@ -4,6 +4,9 @@ idea: use this as a platform for some micro-startup experiments.
 
 First, lets get this goals site working and try to release it
 
+added some of the practice time features to goals. Things still need
+to be cleaned up with look and feel
+
 * <2025-01-09 Thu>
 
 I think we can start adding more of the domain features
