@@ -3,8 +3,6 @@
             [hiccup2.core :as hc]))
 
 (defn goals-table
-  "Renders a table of the user's goals with expansions (like we did before).
-   We assume a 'toggleGoalRow(...)' from the layout JS if you want row-click toggling."
   [goals]
   (if (empty? goals)
     [:p "No goals yet!"]
@@ -15,14 +13,14 @@
        [:th {:class "py-2 px-4 border-b border-gray-600"} "Progress (hrs)"]
        [:th {:class "py-2 px-4 border-b border-gray-600"} "Created"]]]
      [:tbody
-      ;; produce multiple <tr> for each goal, etc.
       (mapcat
-       (fn [{:keys [id title target_hours progress_hours created_at]}]
-         (let [row-id    (str "goal-" id)
-               detail-id (str "goal-detail-" id)
-               progress-str (if target_hours
-                              (str (or progress_hours 0) " / " target_hours)
-                              (str (or progress_hours 0)))]
+       (fn [{:keys [id title target_hours progress_hours augmented-progress created_at]}]
+         (let [actual-progress (or augmented-progress progress_hours 0)
+               row-id          (str "goal-" id)
+               detail-id       (str "goal-detail-" id)
+               progress-str    (if target_hours
+                                 (str actual-progress " / " target_hours)
+                                 (str actual-progress))]
            [[:tr {:key row-id
                   :onclick (str "toggleGoalRow('" id "');")
                   :data-state "closed"

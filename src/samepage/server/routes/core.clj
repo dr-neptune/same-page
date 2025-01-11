@@ -4,17 +4,18 @@
             [samepage.server.routes.auth :as auth]
             [samepage.server.routes.notes :as notes]
             [samepage.server.routes.goals :as goals]
+            [samepage.server.routes.practicelog :as pl]
             [samepage.server.routes.admin :as admin]))
 
 (defn not-found-handler
   [_request]
   {:status 404
    :headers {"Content-Type" "text/html"}
-   :body    "Not Found"})
+   :body "Not Found"})
 
 (defn routes
   [system]
-  [;; HOME
+  [;; Home
    ["/"
     {:get {:handler (partial #'home/root-page-handler system)}}]
 
@@ -37,17 +38,23 @@
    ;; Goals
    ["/goals"
     {:post {:handler (partial #'goals/create-goal-handler system)}}]
+   ["/goals/:id/desc"
+    {:get {:handler (partial #'goals/get-goal-detail-handler system)}}]
    ["/goals/new"
     {:get {:handler (partial #'goals/get-new-goal-handler system)}}]
-   ["/goals/desc/:id"
-    {:get {:handler (partial #'goals/get-goal-detail-handler system)}}]
 
    ;; Admin
    ["/admin"
     {:get {:handler (partial #'admin/admin-handler system)}}]
+
+   ;; Practice logs
+   ["/goals/:goal-id/practice-logs"
+    {:get  {:handler (partial #'pl/get-practice-logs-for-goal-handler system)}
+     :post {:handler (partial #'pl/post-practice-log-handler system)}}]
+   ["/goals/:goal-id/practice-logs/new"
+    {:get {:handler (partial #'pl/get-new-practice-log-handler system)}}]
    ])
 
-;; The top-level ring handler:
 (defn root-handler
   [system request]
   (let [handler (reitit-ring/ring-handler

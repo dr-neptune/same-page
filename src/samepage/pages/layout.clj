@@ -52,7 +52,7 @@
             } else {
               // It's closed => expand via HTMX:
               row.dataset.state = 'open';
-              htmx.ajax('GET', '/goals/desc/' + goalId, row);
+              htmx.ajax('GET', '/goals/' + goalId + '/desc', row);
             }
           }
         }"]]
@@ -60,4 +60,3 @@
       {:class "min-h-screen p-8 bg-[#1e1e28] text-[#e0def2]"}
       user-info
       body-content])))
-

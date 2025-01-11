@@ -13,47 +13,62 @@
 (defn datasource []
   ds)
 
-(defn create-schema!
-  []
-  ;; 1) Create users if not exists
+(defn create-users-table! []
   (let [create-users
         {:create-table [:users :if-not-exists]
          :with-columns
          [[:id :identity :primary-key]
-          [:name     [:varchar 255] :not-null]
-          [:email    [:varchar 255] :not-null]
-          [:password [:varchar 255] :not-null]
-          [:role     [:varchar 50] :not-null [:raw "DEFAULT 'admin'"]] ;; new role column
-          [:created_at  :timestamp :not-null [:raw "DEFAULT CURRENT_TIMESTAMP"]]
-          [:updated_at  :timestamp :not-null [:raw "DEFAULT CURRENT_TIMESTAMP"]]]}
-        [u-sql & u-params] (sql/format create-users)]
-    (jdbc/execute! ds (into [u-sql] u-params)))
+          [:name       [:varchar 255] :not-null]
+          [:email      [:varchar 255] :not-null]
+          [:password   [:varchar 255] :not-null]
+          [:role       [:varchar 50]  :not-null [:raw "DEFAULT 'admin'"]]
+          [:created_at :timestamp     :not-null [:raw "DEFAULT CURRENT_TIMESTAMP"]]
+          [:updated_at :timestamp     :not-null [:raw "DEFAULT CURRENT_TIMESTAMP"]]]}
+        [sql-str & params] (sql/format create-users)]
+    (jdbc/execute! ds (into [sql-str] params))))
 
-  ;; 2) Create notes if not exists
+(defn create-notes-table! []
   (let [create-notes
         {:create-table [:notes :if-not-exists]
          :with-columns
          [[:id :identity :primary-key]
-          [:user_name [:varchar 255]]
-          [:text [:varchar 4000] :not-null]
-          [:created_at :timestamp :not-null
-           [:raw "DEFAULT CURRENT_TIMESTAMP"]]]}
-        [n-sql & n-params] (sql/format create-notes)]
-    (jdbc/execute! ds (into [n-sql] n-params)))
+          [:user_name  [:varchar 255]]
+          [:text       [:varchar 4000] :not-null]
+          [:created_at :timestamp      :not-null [:raw "DEFAULT CURRENT_TIMESTAMP"]]]}
+        [sql-str & params] (sql/format create-notes)]
+    (jdbc/execute! ds (into [sql-str] params))))
 
-  
-  ;; 3) Create goals table if not exists
+(defn create-goals-table! []
   (let [create-goals
         {:create-table [:goals :if-not-exists]
          :with-columns
          [[:id :identity :primary-key]
-          [:user_id :bigint]   ;; references users.id
-          [:title [:varchar 255] :not-null]
-          [:description :text]
-          [:target_hours :int]
-          ;; NEW: progress_hours, default 0
+          [:user_id        :bigint]
+          [:title          [:varchar 255] :not-null]
+          [:description    :text]
+          [:target_hours   :int]
           [:progress_hours :int :not-null [:raw "DEFAULT 0"]]
-          [:created_at :timestamp :not-null [:raw "DEFAULT CURRENT_TIMESTAMP"]]
-          [:updated_at :timestamp :not-null [:raw "DEFAULT CURRENT_TIMESTAMP"]]]}
-        [g-sql & g-params] (sql/format create-goals)]
-    (jdbc/execute! ds (into [g-sql] g-params))))
+          [:created_at     :timestamp :not-null [:raw "DEFAULT CURRENT_TIMESTAMP"]]
+          [:updated_at     :timestamp :not-null [:raw "DEFAULT CURRENT_TIMESTAMP"]]]}
+        [sql-str & params] (sql/format create-goals)]
+    (jdbc/execute! ds (into [sql-str] params))))
+
+(defn create-practice-logs-table! []
+  (let [create-plogs
+        {:create-table [:practice_logs :if-not-exists]
+         :with-columns
+         [[:id :identity :primary-key]
+          [:goal_id       :bigint :not-null]
+          [:duration      :int    :not-null]
+          [:notes         :text]
+          [:practice_date :timestamp :not-null]
+          [:created_at    :timestamp :not-null [:raw "DEFAULT CURRENT_TIMESTAMP"]]
+          [:updated_at    :timestamp :not-null [:raw "DEFAULT CURRENT_TIMESTAMP"]]]}
+        [sql-str & params] (sql/format create-plogs)]
+    (jdbc/execute! ds (into [sql-str] params))))
+
+(defn create-schema! []
+  (create-users-table!)
+  (create-notes-table!)
+  (create-goals-table!)
+  (create-practice-logs-table!))

@@ -1,5 +1,6 @@
 (ns samepage.server.routes.auth
   (:require [clojure.string :as str]
+            [hiccup2.core :refer [html]]
             [samepage.pages.auth :as auth]
             [samepage.model.user :as user-model]))
 
@@ -79,4 +80,21 @@
     {:status 200
      :headers {"Content-Type" "text/html"}
      :session session
-     :body "<html><body>Logged out! (Redirect in 2s)...</body></html>"}))
+     :body
+     (str
+       (html
+         [:html
+          [:head
+           [:title "Logged Out"]
+           ;; auto-refresh home after 2 seconds:
+           [:meta {:http-equiv "refresh" :content "2;url=/"}]
+           ;; load Tailwind for nicer styling
+           [:script {:src "https://cdn.tailwindcss.com"}]]
+          ;; Body w/ a dark background, white text, etc.
+          [:body
+           {:class "min-h-screen flex flex-col items-center justify-center bg-[#1e1e28] text-[#e0def2]"}
+           [:div {:class "max-w-lg mx-auto bg-[#2a2136] p-6 rounded shadow-md text-center"}
+            [:h1 {:class "text-3xl mb-2 font-bold"} "You have been logged out."]
+            [:p {:class "mb-4"} "Redirecting to the home page shortly..."]
+            ;; A small spinning loader for visual feedback:
+            [:div {:class "mx-auto animate-spin h-8 w-8 border-4 border-purple-500 border-t-transparent rounded-full"}]]]]))}))
