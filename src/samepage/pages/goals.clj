@@ -11,7 +11,9 @@
       [:tr
        [:th {:class "py-2 px-4 border-b border-gray-600"} "Title"]
        [:th {:class "py-2 px-4 border-b border-gray-600"} "Progress (hrs)"]
-       [:th {:class "py-2 px-4 border-b border-gray-600"} "Created"]]]
+       [:th {:class "py-2 px-4 border-b border-gray-600"} "Created"]
+       ;; Extra column for delete button
+       [:th {:class "py-2 px-4 border-b border-gray-600"} ""]]]
      [:tbody
       (mapcat
        (fn [{:keys [id title target_hours progress_hours augmented-progress created_at]}]
@@ -25,14 +27,27 @@
                   :onclick (str "toggleGoalRow('" id "');")
                   :data-state "closed"
                   :class "cursor-pointer hover:bg-[#3b2a40]"}
+             ;; Title
              [:td {:class "py-2 px-4 border-b border-gray-600"} title]
+             ;; Progress
              [:td {:class "py-2 px-4 border-b border-gray-600"} progress-str]
+             ;; Created
              [:td {:class "py-2 px-4 border-b border-gray-600"}
-              (layout/format-timestamp created_at)]]
+              (layout/format-timestamp created_at)]
+             ;; Delete button
+             [:td {:class "py-2 px-4 border-b border-gray-600"}
+              [:form
+               {:action   (str "/goals/" id "/delete")
+                :method   "post"
+                :onsubmit "return confirm('Are you sure you want to delete this goal?');"}
+               [:button {:type  "submit"
+                         :class "text-red-500 hover:underline"}
+                "🗑️"]]]]
+            ;; The hidden row for expansion:
             [:tr {:key detail-id
                   :id  detail-id
                   :data-state "closed"}
-             [:td {:colspan "3"
+             [:td {:colspan "4"
                    :class "border-b border-gray-600 p-0"} ""]]]))
        goals)]]))
 

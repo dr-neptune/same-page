@@ -78,3 +78,12 @@
             (sql/format))]
     (first (jdbc/execute! (db/datasource) select-query
                           {:builder-fn rs/as-unqualified-lower-maps}))))
+
+(defn delete-goal!
+  "Delete the goal with the given `goal-id`."
+  [goal-id]
+  (let [delete-query
+        (-> (h/delete-from :goals)
+            (h/where [:= :id goal-id])
+            (sql/format))]
+    (jdbc/execute! (db/datasource) delete-query)))

@@ -24,3 +24,29 @@
     {:status 302
      :headers {"Location" "/"}
      :body ""}))
+
+(defn delete-note-handler
+  [_system request]
+  (let [session    (:session request)
+        user       (:user session)
+        note-id    (some-> (get-in request [:path-params :id]) (Integer/parseInt))]
+    (if (nil? user)
+      ;; Not logged in => redirect
+      {:status  302
+       :headers {"Location" "/login"}
+       :body    ""}
+      (let [note (note-model/get-note-by-id note-id)]
+        (cond
+          (nil? note)
+          {:status 404 :body "Note not found."}
+
+          (or (= (:user_name note) (:name user))
+              (= "admin" (:role user)))
+          (do
+            (note-model/delete-note! note-id)
+            {:status 302
+             :headers {"Location" "/"}
+             :body ""})
+
+          :else
+          {:status 403 :body "You do not have permission to delete this note."})))))

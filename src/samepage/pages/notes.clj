@@ -2,7 +2,7 @@
   (:require [samepage.pages.layout :as layout]
             [hiccup2.core :as hc]))
 
-;; The table for showing all notes, row-click expansion, etc.
+
 (defn notes-table
   [notes]
   [:div {:class "overflow-x-auto mt-6"}
@@ -11,14 +11,26 @@
      [:tr
       [:th {:class "py-2 px-4 border-b border-gray-600"} "User"]
       [:th {:class "py-2 px-4 border-b border-gray-600"} "Note"]
-      [:th {:class "py-2 px-4 border-b border-gray-600"} "Timestamp"]]]
+      [:th {:class "py-2 px-4 border-b border-gray-600"} "Timestamp"]
+      ;; No explicit Delete? header, we'll keep a blank header cell instead:
+      [:th {:class "py-2 px-4 border-b border-gray-600"} ""]]]
     [:tbody
      (for [{:keys [id user_name text timestamp]} notes]
        [:tr {:key id :class "hover:bg-[#3b2a40]"}
         [:td {:class "py-2 px-4 border-b border-gray-600"} user_name]
         [:td {:class "py-2 px-4 border-b border-gray-600"} text]
         [:td {:class "py-2 px-4 border-b border-gray-600"}
-         (layout/format-timestamp timestamp)]])]]])
+         (layout/format-timestamp timestamp)]
+        ;; Delete form with 🗑️ and confirm
+        [:td {:class "py-2 px-4 border-b border-gray-600"}
+         [:form
+          {:action   (str "/notes/" id "/delete")
+           :method   "post"
+           :onsubmit "return confirm('Are you sure you want to delete this note?');"}
+          [:button
+           {:type  "submit"
+            :class "text-red-500 hover:underline"}
+           "🗑️"]]]])]]])
 
 (defn note-form
   "A form to create a new note. We POST to /notes."

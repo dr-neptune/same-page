@@ -1,4 +1,4 @@
-(ns samepage.model.model
+(ns samepage.model.notes
   (:require [samepage.server.db.core :as db]
             [next.jdbc :as jdbc]
             [next.jdbc.result-set :as rs]
@@ -49,3 +49,18 @@
   (jdbc/execute! (db/datasource)
                  ["SELECT id, user_name, text, created_at FROM notes ORDER BY id"]
                  {:builder-fn rs/as-unqualified-lower-maps}))
+
+(defn get-note-by-id
+  [id]
+  (first
+   (jdbc/execute! (db/datasource)
+                  ["SELECT * FROM notes WHERE id = ?" id]
+                  {:builder-fn rs/as-unqualified-lower-maps})))
+
+(defn delete-note!
+  [note-id]
+  (let [delete-query
+        (-> (h/delete-from :notes)
+            (h/where [:= :id note-id])
+            (sql/format))]
+    (jdbc/execute! (db/datasource) delete-query)))

@@ -7,6 +7,10 @@ While the app is small, we should add:
 - tests
 - collaboration features
 
+we also still need to autofill the date and time for practice. We
+should also support non-integer goal progress. It should be at the
+minutes level, not the hour level.
+
 
 * <2025-01-10 Fri>
 

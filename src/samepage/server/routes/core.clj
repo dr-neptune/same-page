@@ -34,6 +34,8 @@
     {:post {:handler (partial #'notes/create-note-handler system)}}]
    ["/notes/new"
     {:get {:handler (partial #'notes/get-new-note-handler system)}}]
+   ["/notes/:id/delete"
+    {:post {:handler (partial #'notes/delete-note-handler system)}}]
 
    ;; Goals
    ["/goals"
@@ -42,6 +44,8 @@
     {:get {:handler (partial #'goals/get-goal-detail-handler system)}}]
    ["/goals/new"
     {:get {:handler (partial #'goals/get-new-goal-handler system)}}]
+   ["/goals/:id/delete"
+    {:post {:handler (partial #'goals/delete-goal-handler system)}}]
 
    ;; Admin
    ["/admin"

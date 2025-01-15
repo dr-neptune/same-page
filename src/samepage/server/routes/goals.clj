@@ -41,6 +41,31 @@
          :headers {"Location" "/"}
          :body ""}))))
 
+(defn delete-goal-handler
+  [_system request]
+  (let [session (:session request)
+        user    (:user session)
+        goal-id (some-> (get-in request [:path-params :id]) (Integer/parseInt))]
+    (if (nil? user)
+      {:status 302
+       :headers {"Location" "/login"}
+       :body ""}
+      (let [goal (goal-model/get-goal-by-id goal-id)]
+        (cond
+          (nil? goal)
+          {:status 404 :body "Goal not found."}
+
+          (or (= (:user_id goal) (:id user))
+              (= "admin" (:role user)))
+          (do
+            (goal-model/delete-goal! goal-id)
+            {:status 302
+             :headers {"Location" "/"}
+             :body ""})
+
+          :else
+          {:status 403 :body "You do not have permission to delete this goal."})))))
+
 (defn get-goal-detail-handler
   "Expands a goal row, showing the goal's description, last update,
    plus top 5 practice logs + link to see all logs."
