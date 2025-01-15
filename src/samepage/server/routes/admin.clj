@@ -1,6 +1,6 @@
 (ns samepage.server.routes.admin
   (:require [samepage.model.user :as user-model]
-            [samepage.model.model :as note-model]
+            [samepage.model.notes :as note-model]
             [samepage.model.goal :as goal-model]
             [samepage.pages.admin :as admin]))
 

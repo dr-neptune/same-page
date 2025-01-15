@@ -1,6 +1,6 @@
 (ns samepage.server.routes.notes
   (:require [hiccup2.core :refer [html]]
-            [samepage.model.model :as note-model]
+            [samepage.model.notes :as note-model]
             [samepage.pages.notes :as notes]))
 
 (defn get-new-note-handler

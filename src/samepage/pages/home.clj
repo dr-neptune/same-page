@@ -2,7 +2,7 @@
   (:require [samepage.pages.layout :as layout]
             [samepage.pages.notes :as notes]
             [samepage.pages.goals :as goals]
-            [samepage.model.model :as note-model]
+            [samepage.model.notes :as note-model]
             [samepage.model.goal :as goal-model]
             [samepage.model.practicelog :as pl]))
 
