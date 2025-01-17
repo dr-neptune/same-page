@@ -111,15 +111,13 @@
 
     ;; Link to new practice log
     [:div {:class "mt-4"}
-     [:a {:href (str "/goals/" (:id goal) "/practice-logs/new")
-          :class "bg-purple-600 text-white py-2 px-4 rounded hover:bg-purple-700"}
-      "Log a Practice"]]
-    ;; Link back home:
-    [:div {:class "mt-4"}
      [:a
       {:href "/"
-       :class "bg-purple-600 text-white py-2 px-4 rounded hover:bg-purple-700"}
-      "← Back to Overview"]]]))
+       :class "bg-zinc-600 text-white py-2 px-4 p-4 rounded hover:bg-purple-700"}
+      "←"]
+     [:a {:href (str "/goals/" (:id goal) "/practice-logs/new")
+          :class "bg-purple-600 text-white py-2 px-4 p-4 rounded hover:bg-purple-700"}
+      "Log a Practice"]]]))
 
 (defn new-practice-log-page
   [request goal-id]

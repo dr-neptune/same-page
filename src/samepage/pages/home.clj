@@ -25,26 +25,39 @@
      (if user (str "Welcome, " user-name) "Home - Mastery App")
      [:div {:class "max-w-2xl mx-auto bg-[#2a2136] p-6 rounded shadow-md"}
       (if-not user
-        ;; not logged in
+        ;; not logged in => show register + login buttons, plus a quick login
         [:div
          [:h1 {:class "text-3xl mb-2"} "Welcome to the 10,000 Hours Mastery App"]
          [:p "Track your deliberate practice across multiple goals."]
-         [:div {:class "mt-4 space-x-4"}
+         [:div {:class "mt-4 space-x-4 inline-block"}
+
+          ;; REGISTER BUTTON
           [:a {:href "/register"
                :class "bg-purple-600 text-white py-2 px-4 rounded hover:bg-purple-700"}
            "Register Here"]
+
+          ;; LOGIN BUTTON
           [:a {:href "/login"
                :class "bg-purple-600 text-white py-2 px-4 rounded hover:bg-purple-700"}
-           "Log In"]]]
-        ;; else => user is logged in
+           "Log In"]
+
+          ;; QUICK-LOGIN BUTTON
+          ;; We'll embed a small form that automatically submits "old@rottenhat" / "pw"
+          [:form {:action "/login" :method "post" :class "inline-block ml-2"}
+           [:input {:type "hidden" :name "email" :value "old@rottenhat"}]
+           [:input {:type "hidden" :name "password" :value "pw"}]
+           [:button {:type "submit"
+                     :class "bg-gray-500 text-white py-2 px-4 rounded hover:bg-gray-600"}
+            "Quick Login as old@rottenhat"]]]]
+
+        ;; else => user is logged in => show dashboard
         [:div
-         [:h1 {:class "text-3xl mb-4 font-bold"}
-          "Your Dashboard, "
-          [:span {:class "text-pink-400"} user-name]]
+         [:h1 {:class "text-3xl mb-4 font-bold"} (str "Your Dashboard, " user-name)]
+
          ;; NOTES
          [:h2 {:class "text-xl mb-2 font-semibold"} "Your Notes"]
          (notes/notes-table user-notes)
-         [:div {:class "mt-2"}
+         [:div {:class "mt-4"}
           [:a {:href "/notes/new"
                :class "bg-purple-600 text-white py-2 px-4 rounded hover:bg-purple-700"}
            "Create a Note"]]
