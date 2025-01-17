@@ -12,29 +12,29 @@
        [:th {:class "py-2 px-4 border-b border-gray-600"} "Title"]
        [:th {:class "py-2 px-4 border-b border-gray-600"} "Progress (hrs)"]
        [:th {:class "py-2 px-4 border-b border-gray-600"} "Created"]
-       ;; Extra column for delete button
-       [:th {:class "py-2 px-4 border-b border-gray-600"} ""]]]
+       [:th {:class "py-2 px-4 border-b border-gray-600"} "Edit"] ; <-- Add this
+       [:th {:class "py-2 px-4 border-b border-gray-600"} "Delete"]]]
      [:tbody
       (mapcat
        (fn [{:keys [id title target_hours progress_hours augmented-progress created_at]}]
          (let [actual-progress (or augmented-progress progress_hours 0)
-               row-id          (str "goal-" id)
-               detail-id       (str "goal-detail-" id)
-               progress-str    (if target_hours
-                                 (str actual-progress " / " target_hours)
-                                 (str actual-progress))]
-           [[:tr {:key row-id
+               progress-str (if target_hours
+                              (str actual-progress " / " target_hours)
+                              (str actual-progress))]
+           [[:tr {:key (str "goal-" id)
                   :onclick (str "toggleGoalRow('" id "');")
                   :data-state "closed"
                   :class "cursor-pointer hover:bg-[#3b2a40]"}
-             ;; Title
              [:td {:class "py-2 px-4 border-b border-gray-600"} title]
-             ;; Progress
              [:td {:class "py-2 px-4 border-b border-gray-600"} progress-str]
-             ;; Created
              [:td {:class "py-2 px-4 border-b border-gray-600"}
               (layout/format-timestamp created_at)]
-             ;; Delete button
+             ;; EDIT button:
+             [:td {:class "py-2 px-4 border-b border-gray-600"}
+              [:a {:href (str "/goals/" id "/edit")
+                   :class "text-blue-500 hover:underline"}
+               "✏️"]]
+             ;; DELETE button:
              [:td {:class "py-2 px-4 border-b border-gray-600"}
               [:form
                {:action   (str "/goals/" id "/delete")
@@ -43,11 +43,11 @@
                [:button {:type  "submit"
                          :class "text-red-500 hover:underline"}
                 "🗑️"]]]]
-            ;; The hidden row for expansion:
-            [:tr {:key detail-id
-                  :id  detail-id
+            ;; hidden expansion row
+            [:tr {:key (str "goal-detail-" id)
+                  :id  (str "goal-detail-" id)
                   :data-state "closed"}
-             [:td {:colspan "4"
+             [:td {:colspan "5"
                    :class "border-b border-gray-600 p-0"} ""]]]))
        goals)]]))
 
@@ -92,3 +92,50 @@
    [:div {:class "max-w-md mx-auto bg-[#2a2136] p-6 rounded shadow-md"}
     [:h1 {:class "text-3xl mb-4 font-bold"} "Create a New Goal"]
     (goal-form)]))
+
+(defn edit-goal-form
+  "A form for editing a goal, pre-populated with current goal data."
+  [goal]
+  [:form {:action (str "/goals/" (:id goal) "/edit")
+          :method "post"
+          :class "space-y-4 mt-4 mb-6"}
+   [:div
+    [:label {:class "block font-semibold"} "Goal Title:"]
+    [:input {:type "text"
+             :name "title"
+             :value (:title goal)
+             :class "w-full p-2 border border-gray-300 rounded bg-[#2f2b3b] text-[#e0def2]"
+             :required true}]]
+   [:div
+    [:label {:class "block font-semibold"} "Description:"]
+    [:textarea {:name "description"
+                :class "w-full h-20 p-2 border border-gray-300 rounded bg-[#2f2b3b] text-[#e0def2]"}
+     (or (:description goal) "")]]
+   [:div
+    [:label {:class "block font-semibold"} "Target Hours (optional):"]
+    [:input {:type "number"
+             :name "target_hours"
+             :class "w-32 p-2 border border-gray-300 rounded bg-[#2f2b3b] text-[#e0def2]"
+             :min "0"
+             :value (or (:target_hours goal) 0)}]]
+   [:div
+    [:label {:class "block font-semibold"} "Progress (hours):"]
+    [:input {:type "number"
+             :name "progress_hours"
+             :class "w-32 p-2 border border-gray-300 rounded bg-[#2f2b3b] text-[#e0def2]"
+             :min "0"
+             :value (or (:progress_hours goal) 0)}]]
+   [:button {:type "submit"
+             :class "mt-2 bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700"}
+    "Update Goal"]])
+
+(defn edit-goal-page
+  "Renders a page to edit an existing goal."
+  [request goal]
+  (layout/page-layout
+   request
+   (str "Edit Goal: " (:title goal))
+   [:div {:class "max-w-md mx-auto bg-[#2a2136] p-6 rounded shadow-md"}
+    [:h1 {:class "text-3xl mb-4 font-bold"}
+     (str "Edit Goal: " (:title goal))]
+    (edit-goal-form goal)]))

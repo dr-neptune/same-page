@@ -135,3 +135,61 @@
                          [:td
                           {:class "py-1 px-2 border-b border-gray-600"}
                           (or notes "")]])]])]))}))))
+
+(defn get-edit-goal-handler
+  [_system request]
+  (let [session (:session request)
+        user    (:user session)
+        goal-id (some-> (get-in request [:path-params :id]) (Integer/parseInt))
+        goal    (goal-model/get-goal-by-id goal-id)]
+    (cond
+      (nil? user)
+      ;; Not logged in => redirect
+      {:status 302 :headers {"Location" "/login"} :body ""}
+
+      (nil? goal)
+      ;; No such goal
+      {:status 404 :body "Goal not found."}
+
+      (or (= (:user_id goal) (:id user))
+          (= "admin" (:role user)))
+      ;; The user either owns it or is admin => show edit page
+      {:status 200
+       :headers {"Content-Type" "text/html"}
+       :body (goal-pages/edit-goal-page request goal)}
+
+      :else
+      ;; Not authorized
+      {:status 403 :body "You do not have permission to edit this goal."})))
+
+(defn post-edit-goal-handler
+  [_system request]
+  (let [session   (:session request)
+        user      (:user session)
+        goal-id   (some-> (get-in request [:path-params :id]) (Integer/parseInt))
+        goal      (goal-model/get-goal-by-id goal-id)
+        params    (:params request)]
+    (cond
+      (nil? user)
+      {:status 302 :headers {"Location" "/login"} :body ""}
+
+      (nil? goal)
+      {:status 404 :body "Goal not found."}
+
+      (and (not= (:user_id goal) (:id user))
+           (not= "admin" (:role user)))
+      {:status 403 :body "You do not have permission to edit this goal."}
+
+      :else
+      (let [title        (get params "title")
+            description  (get params "description")
+            target-hours (some-> (get params "target_hours") not-empty Integer/parseInt)
+            progress-hrs (some-> (get params "progress_hours") not-empty Integer/parseInt)]
+        (goal-model/update-goal! goal-id
+                                 {:title          title
+                                  :description    description
+                                  :target_hours   target-hours
+                                  :progress_hours progress-hrs})
+        {:status 302
+         :headers {"Location" "/"}
+         :body ""}))))

@@ -79,6 +79,18 @@
     (first (jdbc/execute! (db/datasource) select-query
                           {:builder-fn rs/as-unqualified-lower-maps}))))
 
+(defn update-goal!
+  "Update an existing goal by ID. Supply a map of updated fields (title, description, etc.)."
+  [goal-id updates]
+  (let [now (Instant/now)
+        update-stmt
+        (-> (h/update :goals)
+            (h/set (assoc updates :updated_at now))
+            (h/where [:= :id goal-id])
+            (sql/format))]
+    (jdbc/execute! (db/datasource) update-stmt
+                   {:builder-fn rs/as-unqualified-lower-maps})))
+
 (defn delete-goal!
   "Delete the goal with the given `goal-id`."
   [goal-id]

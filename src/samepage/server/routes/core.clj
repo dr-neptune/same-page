@@ -46,6 +46,9 @@
     {:get {:handler (partial #'goals/get-new-goal-handler system)}}]
    ["/goals/:id/delete"
     {:post {:handler (partial #'goals/delete-goal-handler system)}}]
+   ["/goals/:id/edit"
+    {:get  {:handler (partial #'goals/get-edit-goal-handler system)}
+     :post {:handler (partial #'goals/post-edit-goal-handler system)}}]
 
    ;; Admin
    ["/admin"
