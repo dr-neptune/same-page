@@ -4,7 +4,8 @@
             [next.jdbc.result-set :as rs]
             [buddy.hashers :as hashers]
             [honey.sql :as sql]
-            [honey.sql.helpers :as h]))
+            [honey.sql.helpers :as h])
+  (:import (java.time Instant)))
 
 (defn create-user!
   "Insert a user row with :role = 'admin' by default, hashing the password.
@@ -56,3 +57,28 @@
                  ["SELECT id, name, display_name, email, role, created_at, updated_at
                    FROM users ORDER BY id"]
                  {:builder-fn rs/as-unqualified-lower-maps}))
+
+(defn update-user!
+  "Update the user row in DB with `fields`, returning the new row."
+  [user-id fields]
+  (let [now (Instant/now)
+        update-stmt
+        (-> (h/update :users)
+            (h/set (assoc fields :updated_at now))
+            (h/where [:= :id user-id])
+            (sql/format))]
+    (jdbc/execute! (db/datasource) update-stmt
+                   {:builder-fn rs/as-unqualified-lower-maps})
+    ;; fetch updated
+    (first
+      (jdbc/execute! (db/datasource)
+                     ["SELECT * FROM users WHERE id = ?" user-id]
+                     {:builder-fn rs/as-unqualified-lower-maps}))))
+
+;; Possibly define a helper to fetch by id:
+(defn get-user-by-id
+  [id]
+  (first
+   (jdbc/execute! (db/datasource)
+                  ["SELECT * FROM users WHERE id = ?" id]
+                  {:builder-fn rs/as-unqualified-lower-maps})))

@@ -34,6 +34,17 @@ picture has been added, or display their picture if they have uploaded
 a profile pic. If the user updates their display name, make it show in
 their dashboard as Your Dashboard, DISPLAY_NAME
 
+Let's add a user management page!
+
+Please make it appear by clicking on the username in the top bar
+within: Logged in as: username. In the user management page, please
+allow the user to set their display name and allow them to set a url
+of an image for a profile picture (think adding an imgur image). Please display an empty box if no profile
+picture has been added, or display their picture if they have uploaded
+a profile pic. If the user updates their display name, make it show in
+their dashboard as Your Dashboard, DISPLAY_NAME
+
+
 * <2025-01-15 Wed>
 
 adding delete functionality

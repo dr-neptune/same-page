@@ -62,15 +62,16 @@
           ;; "Logged in as: someusername (someemail)"
           [:span
            "Logged in as: "
-           [:span {:class "text-pink-400 font-semibold"} (or (:name user) "???")]
+           ;; changed to a link
+           [:a {:href "/profile"
+                :class "text-pink-400 font-semibold hover:underline"}
+            (or (:name user) "???")]
            " ("
            [:span {:class "font-semibold"} (or (:email user) "???")]
-           ") "]
-          (when is-admin?
-            [:a {:href "/admin"
-                 :class "underline ml-4"} "[Admin Panel]"])
-          [:a {:href "/logout"
-               :class "underline ml-4"} "[Logout]"]])]
+           ") "
+           (when is-admin?
+             [:a {:href "/admin" :class "underline ml-4"} "[Admin Panel]"])
+           [:a {:href "/logout" :class "underline ml-4"} "[Logout]"]]])]
 
       ;; The main page content
       [:div {:class "p-8"}

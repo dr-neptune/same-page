@@ -4,6 +4,7 @@
             [samepage.server.routes.auth :as auth]
             [samepage.server.routes.notes :as notes]
             [samepage.server.routes.goals :as goals]
+            [samepage.server.routes.profile :as profile]
             [samepage.server.routes.practicelog :as pl]
             [samepage.server.routes.admin :as admin]))
 
@@ -19,6 +20,9 @@
   [;; 1) Serve a user’s dashboard by name => /:username
    ["/u/:username"
     {:get {:handler (partial #'home/user-dashboard-handler system)}}]
+   ["/profile"
+    {:get  {:handler (partial #'profile/get-profile-handler system)}
+     :post {:handler (partial #'profile/post-profile-handler system)}}]
 
    ;; 2) Root page => /
    ["/"

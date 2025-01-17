@@ -12,8 +12,13 @@
   [request]
   (let [session    (:session request)
         user       (:user session)
+        ;; If user is logged in, choose display_name if non-empty, else name
+        display    (when user
+                     (if (seq (str (:display_name user)))
+                       (:display_name user)
+                       (:name user)))
+        user-id    (:id user)  ; May be nil if not logged in
         user-name  (:name user)
-        user-id    (:id user)
         user-notes (when user (note-model/get-notes-for-user user-name))
         raw-goals  (when user (goal-model/get-goals-for-user user-id))
         user-goals (when raw-goals
@@ -24,7 +29,7 @@
                           raw-goals))]
     (layout/page-layout
      request
-     (if user (str "Welcome, " user-name) "Home - Mastery App")
+     (if user (str "Welcome, " display) "Home - Mastery App")
      [:div {:class "max-w-2xl mx-auto bg-[#2a2136] p-6 rounded shadow-md"}
       (if-not user
         ;; not logged in => show landing
@@ -32,17 +37,17 @@
          [:h1 {:class "text-3xl mb-2"} "Welcome to the 10,000 Hours Mastery App"]
          [:p "Track your deliberate practice across multiple goals."]
          [:div {:class "mt-4 space-x-4 inline-block"}
-          ;; register
+          ;; Register
           [:a {:href "/register"
                :class "bg-purple-600 text-white py-2 px-4 rounded hover:bg-purple-700"}
            "Register Here"]
 
-          ;; login
+          ;; Login
           [:a {:href "/login"
                :class "bg-purple-600 text-white py-2 px-4 rounded hover:bg-purple-700"}
            "Log In"]
 
-          ;; optional quick-login example:
+          ;; Optional quick-login example:
           [:form {:action "/login" :method "post" :class "inline-block ml-2"}
            [:input {:type "hidden" :name "email" :value "old@rottenhat"}]
            [:input {:type "hidden" :name "password" :value "pw"}]
@@ -52,7 +57,7 @@
 
         ;; else => user is logged in
         [:div
-         [:h1 {:class "text-3xl mb-4 font-bold"} (str "Your Dashboard, " user-name)]
+         [:h1 {:class "text-3xl mb-4 font-bold"} (str "Your Dashboard, " display)]
 
          ;; NOTES
          [:h2 {:class "text-xl mb-2 font-semibold"} "Your Notes"]

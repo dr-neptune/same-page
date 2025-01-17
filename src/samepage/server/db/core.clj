@@ -18,13 +18,16 @@
         {:create-table [:users :if-not-exists]
          :with-columns
          [[:id :identity :primary-key]
-          [:name       [:varchar 255] :not-null]
-          [:display_name [:varchar 255] :not-null [:raw "DEFAULT ''"]]
-          [:email      [:varchar 255] :not-null]
-          [:password   [:varchar 255] :not-null]
-          [:role       [:varchar 50]  :not-null [:raw "DEFAULT 'admin'"]]
-          [:created_at :timestamp     :not-null [:raw "DEFAULT CURRENT_TIMESTAMP"]]
-          [:updated_at :timestamp     :not-null [:raw "DEFAULT CURRENT_TIMESTAMP"]]]}
+          [:name          [:varchar 255] :not-null]
+          [:display_name  [:varchar 255] :not-null [:raw "DEFAULT ''"]]
+          [:email         [:varchar 255] :not-null]
+          [:password      [:varchar 255] :not-null]
+          [:role          [:varchar 50]  :not-null [:raw "DEFAULT 'admin'"]]
+          ;; NEW column:
+          [:profile_pic   [:varchar 255] :not-null [:raw "DEFAULT ''"]]
+
+          [:created_at    :timestamp :not-null [:raw "DEFAULT CURRENT_TIMESTAMP"]]
+          [:updated_at    :timestamp :not-null [:raw "DEFAULT CURRENT_TIMESTAMP"]]]}
         [sql-str & params] (sql/format create-users)]
     (jdbc/execute! ds (into [sql-str] params))))
 
