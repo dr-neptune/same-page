@@ -3,13 +3,19 @@
             [samepage.server.db.core :as db]
             [ring.adapter.jetty :as jetty]
             [ring.middleware.params :refer [wrap-params]]
+            [ring.middleware.session.memory :refer [memory-store]]
             [ring.middleware.session :refer [wrap-session]]))
+
 
 (defn make-app
   [system]
   (-> (partial #'routes/root-handler system)
       wrap-params
-      wrap-session))
+      (wrap-session
+        {:store (memory-store)
+         :cookie-attrs {:same-site :lax  ; or :strict, :none
+                        :secure false    ; must be false if no HTTPS
+                        :http-only true}})))
 
 (defn start-server
   [system]
