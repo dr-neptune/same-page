@@ -57,14 +57,12 @@
 
         ;; else => user is logged in
         [:div
-         ;; ADD THIS BLOCK TO SHOW PROFILE PIC OR "No pic"
          (if (seq (str (:profile_pic user)))
            [:img {:src   (:profile_pic user)
                   :alt   "Profile Picture"
-                  :class "w-60 h-60 object-cover rounded-lg border-2 border-gray-300 mb-2"}]
-           [:div {:class "w-60 h-60 bg-gray-600 text-gray-300 mb-2
-                flex items-center justify-center rounded-lg
-                border-1 border-gray-300"}
+                  :class "w-32 h-32 object-cover rounded-full mb-2 rounded-lg"}]
+           [:div {:class "w-32 h-32 bg-gray-600 text-gray-300 mb-2
+                  flex items-center justify-center rounded-lg"}
             "No pic"])
          [:h1 {:class "text-3xl mb-4 font-bold"} (str "Your Dashboard, " display)]
 
