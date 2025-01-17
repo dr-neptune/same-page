@@ -1,3 +1,12 @@
+* <2025-01-17 Fri>
+It didn't go so well yesterday, and I didn't actually get the app
+running. Trying from scratch today:
+
+- edit notes and goals
+- add a quick button that adds practice without viewing all logs
+- line up Log a Practice and Back to Overview buttons in the
+  practice-logs page
+
 * <2025-01-15 Wed>
 
 adding delete functionality

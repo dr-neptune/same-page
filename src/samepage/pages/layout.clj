@@ -21,11 +21,12 @@
         is-admin?  (= "admin" (:role user))
         user-info  (when user
                      [:div {:class "text-right p-2 bg-[#2a2136] mb-6"}
-                      [:span (str "Logged in as: "
-                                  (or (:name user) "???")
-                                  " ("
-                                  (or (:email user) "???")
-                                  ") ")]
+                      [:span
+                       "Logged in as: "
+                       [:span {:class "text-pink-400 font-semibold"} (or (:name user) "???")]
+                       " ("
+                       [:span {:class "font-semibold"} (or (:email user) "???")]
+                       ") "]
                       (when is-admin?
                         [:a {:href "/admin"
                              :class "underline ml-4"} "[Admin Panel]"])

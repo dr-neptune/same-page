@@ -38,8 +38,9 @@
            "Log In"]]]
         ;; else => user is logged in
         [:div
-         [:h1 {:class "text-3xl mb-4 font-bold"} (str "Your Dashboard, " user-name)]
-
+         [:h1 {:class "text-3xl mb-4 font-bold"}
+          "Your Dashboard, "
+          [:span {:class "text-pink-400"} user-name]]
          ;; NOTES
          [:h2 {:class "text-xl mb-2 font-semibold"} "Your Notes"]
          (notes/notes-table user-notes)

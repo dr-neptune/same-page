@@ -64,3 +64,14 @@
             (h/where [:= :id note-id])
             (sql/format))]
     (jdbc/execute! (db/datasource) delete-query)))
+
+(defn update-note!
+  "Update the text of an existing note by ID."
+  [note-id new-text]
+  (let [update-stmt
+        (-> (h/update :notes)
+            (h/set {:text new-text})
+            (h/where [:= :id note-id])
+            (sql/format))]
+    (jdbc/execute! (db/datasource) update-stmt
+                   {:builder-fn rs/as-unqualified-lower-maps})))

@@ -36,6 +36,9 @@
     {:get {:handler (partial #'notes/get-new-note-handler system)}}]
    ["/notes/:id/delete"
     {:post {:handler (partial #'notes/delete-note-handler system)}}]
+   ["/notes/:id/edit"
+    {:get  {:handler (partial #'notes/get-edit-note-handler system)}
+     :post {:handler (partial #'notes/post-edit-note-handler system)}}]
 
    ;; Goals
    ["/goals"
