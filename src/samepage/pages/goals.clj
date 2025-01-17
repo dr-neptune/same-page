@@ -139,3 +139,63 @@
     [:h1 {:class "text-3xl mb-4 font-bold"}
      (str "Edit Goal: " (:title goal))]
     (edit-goal-form goal)]))
+
+
+;; A small helper to format progress, so if there's a target we show "progress / target"
+(defn- progress-str
+  [{:keys [target_hours augmented-progress progress_hours]}]
+  (let [actual (or augmented-progress progress_hours 0)]
+    (if target_hours
+      (str actual " / " target_hours)
+      (str actual))))
+
+
+(defn user-goals-table
+  "User-facing goals table with expand-on-click. Shows Title, Progress, Edit, Delete columns.
+   Clicking the row toggles a second 'detail' row containing description + practice logs."
+  [goals]
+  (if (empty? goals)
+    [:p "No goals yet!"]
+    [:table {:class "min-w-full border border-gray-600 text-left mb-6"}
+     [:thead
+      [:tr
+       [:th {:class "py-2 px-4 border-b border-gray-600"} "Title"]
+       [:th {:class "py-2 px-4 border-b border-gray-600"} "Progress (hrs)"]
+       [:th {:class "py-2 px-4 border-b border-gray-600"} "Edit"]
+       [:th {:class "py-2 px-4 border-b border-gray-600"} "Delete"]]]
+     [:tbody
+      (mapcat
+       (fn [{:keys [id title] :as goal}]
+         (let [prog (progress-str goal)]
+           [;; Primary row (click to expand)
+            [:tr {:key         (str "goal-" id)
+                  :onclick     (str "toggleGoalRow('" id "');")
+                  :data-state  "closed"
+                  :class       "cursor-pointer hover:bg-[#3b2a40]"}
+             ;; Title
+             [:td {:class "py-2 px-4 border-b border-gray-600"} title]
+             ;; Progress
+             [:td {:class "py-2 px-4 border-b border-gray-600"} prog]
+             ;; Edit icon
+             [:td {:class "py-2 px-4 border-b border-gray-600 text-right"}
+              [:a {:href (str "/goals/" id "/edit")
+                   :class "text-blue-500 hover:underline"}
+               "✏️"]]
+             ;; Delete icon
+             [:td {:class "py-2 px-4 border-b border-gray-600 text-right"}
+              [:form
+               {:action   (str "/goals/" id "/delete")
+                :method   "post"
+                :onsubmit "return confirm('Are you sure you want to delete this goal?');"
+                :class    "inline-block"}
+               [:button {:type  "submit"
+                         :class "text-red-500 hover:underline"}
+                "🗑️"]]]]
+            ;; Detail row (hidden by default, filled on expand)
+            [:tr {:key        (str "goal-detail-" id)
+                  :id         (str "goal-detail-" id)
+                  :data-state "closed"}
+             ;; We'll fill this <td> from /goals/:id/desc via htmx
+             [:td {:colspan 4
+                   :class "p-0 border-b border-gray-600"} ""]]]))
+       goals)]]))

@@ -68,7 +68,7 @@
 
          ;; NOTES
          [:h2 {:class "text-xl mb-2 font-semibold"} "Your Notes"]
-         (notes/notes-table user-notes)
+         (notes/user-notes-list user-notes)
          [:div {:class "mt-4"}
           [:a {:href "/notes/new"
                :class "bg-purple-600 text-white py-2 px-4 rounded hover:bg-purple-700"}
@@ -76,7 +76,7 @@
 
          ;; GOALS
          [:h2 {:class "text-xl mt-8 mb-2 font-semibold"} "Your Goals"]
-         (goals/goals-table user-goals)
+         (goals/user-goals-table user-goals)
          [:div {:class "mt-2"}
           [:a {:href "/goals/new"
                :class "bg-purple-600 text-white py-2 px-4 rounded hover:bg-purple-700"}
@@ -103,8 +103,8 @@
 
       ;; NOTES
       [:h2 {:class "text-xl mb-2 font-semibold"} (str user-name "'s Notes")]
-      (notes/notes-table user-notes)
+      (notes/user-notes-list user-notes)
 
       ;; GOALS
       [:h2 {:class "text-xl mt-8 mb-2 font-semibold"} (str user-name "'s Goals")]
-      (goals/goals-table user-goals)])))
+      (goals/user-goals-table user-goals)])))
