@@ -9,20 +9,19 @@
 (set! *warn-on-reflection* true)
 
 (defn create-goal!
-  "Insert a new goal row for a given user_id + title, desc, etc."
+  "Insert a new goal row with user_id, title, description, target_hours, progress_hours."
   [{:keys [user-id title description target_hours progress_hours]}]
-  (let [now           (Instant/now)
-        ;; If user didn't specify progress_hours, default to 0
-        prog          (or progress_hours 0)
+  (let [now (Instant/now)
+        prog (or progress_hours 0)
         insert-query
         (-> (h/insert-into :goals)
-            (h/values [{:user_id       user-id
-                        :title         title
-                        :description   description
-                        :target_hours  target_hours
+            (h/values [{:user_id        user-id
+                        :title          title
+                        :description    description
+                        :target_hours   target_hours
                         :progress_hours prog
-                        :created_at    now
-                        :updated_at    now}])
+                        :created_at     now
+                        :updated_at     now}])
             (sql/format))]
     (jdbc/execute! (db/datasource) insert-query
                    {:builder-fn rs/as-unqualified-lower-maps})))

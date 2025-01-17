@@ -19,11 +19,15 @@
 
 (defn create-goal-handler
   [_system request]
-  (let [params       (:params request)
-        user         (get-in request [:session :user])
-        user-id      (:id user)]
-    (if (nil? user)
-      {:status 302 :headers {"Location" "/login"} :body ""}
+  (let [params      (:params request)
+        user        (get-in request [:session :user])
+        user-id     (:id user)]
+    (if (nil? user-id)
+      ;; If user-id is nil => either user not logged in or session not set
+      {:status 302
+       :headers {"Location" "/login"}
+       :body ""}
+      ;; Otherwise proceed
       (let [title        (get params "title" "")
             description  (get params "description" "")
             target-hours (some-> (get params "target_hours" "")
@@ -32,11 +36,12 @@
             progress-hrs (some-> (get params "progress_hours" "")
                                  not-empty
                                  (Integer/parseInt))]
-        (goal-model/create-goal! {:user-id user-id
-                                  :title title
-                                  :description description
-                                  :target_hours target-hours
-                                  :progress_hours progress-hrs})
+        (goal-model/create-goal!
+         {:user-id        user-id
+          :title          title
+          :description    description
+          :target_hours   target-hours
+          :progress_hours progress-hrs})
         {:status 302
          :headers {"Location" "/"}
          :body ""}))))

@@ -12,6 +12,27 @@ Let's start working on the social media aspects
 - make the users core page be at /username
 - make the root page be people's updates
 
+Give a user a username and a display name. Allow them to adjust their
+profile which changes their displayname. It would also be cool to add
+pictures for users.
+
+Could this also be a micro-blogging platform?
+Maybe let's focus on goals for now, then add blog posts which are
+shareable. A cool part of blog posts could be the ability for users to
+add notes on specific parts of the tex
+
+At some point it would be good to see what might be collapsed into a
+macro
+
+Let's add a user management page!
+
+Please make it appear by clicking on the username in the top bar
+within: Logged in as: username. In the user management page, please
+allow the user to set their display name and allow them to upload an
+image for a profile picture. Please display an empty box if no profile
+picture has been added, or display their picture if they have uploaded
+a profile pic. If the user updates their display name, make it show in
+their dashboard as Your Dashboard, DISPLAY_NAME
 
 * <2025-01-15 Wed>
 

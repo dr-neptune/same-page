@@ -19,6 +19,7 @@
          :with-columns
          [[:id :identity :primary-key]
           [:name       [:varchar 255] :not-null]
+          [:display_name [:varchar 255] :not-null [:raw "DEFAULT ''"]]
           [:email      [:varchar 255] :not-null]
           [:password   [:varchar 255] :not-null]
           [:role       [:varchar 50]  :not-null [:raw "DEFAULT 'admin'"]]

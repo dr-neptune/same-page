@@ -13,15 +13,27 @@
 
 (defn post-register-handler
   [_system request]
-  (let [params   (:params request)
-        name     (get params "name" "")
-        email    (get params "email" "")
-        password (get params "password" "")]
+  (let [params       (:params request)
+        raw-name     (get params "name" "")
+        display-name (get params "display_name" "")
+        email        (get params "email" "")
+        password     (get params "password" "")
+        ;; enforce lowercase, trim:
+        trimmed-name (str/trim raw-name)
+        username     (str/lower-case trimmed-name)]
+
     (cond
-      (str/blank? name)
+      (str/blank? trimmed-name)
       {:status 200
        :headers {"Content-Type" "text/html"}
-       :body (auth/register-user-page request "Name is required!")}
+       :body (auth/register-user-page request "Username is required!")}
+
+      ;; Check for spaces or invalid chars. For example, let's allow [a-z0-9-_]
+      (not (re-matches #"[a-z0-9_-]+" username))
+      {:status 200
+       :headers {"Content-Type" "text/html"}
+       :body (auth/register-user-page
+              request "Username must be all lowercase letters, numbers, underscores, or dashes (no spaces).")}
 
       (str/blank? email)
       {:status 200
@@ -34,19 +46,25 @@
        :body (auth/register-user-page request "Password is required!")}
 
       :else
-      (let [existing (user-model/find-by-name-or-email name email)]
+      (let [existing (user-model/find-by-name-or-email username email)]
         (if existing
+          ;; A user with that name or email already exists
           {:status 200
            :headers {"Content-Type" "text/html"}
            :body (auth/register-user-page
                   request
-                  (str "A user with name [" name
+                  (str "A user with name [" username
                        "] or email [" email
                        "] already exists!"))}
-          (let [new-user (user-model/create-user! {:name name
-                                                   :email email
-                                                   :password password})
-                session-user (select-keys new-user [:id :name :email :role])]
+
+          ;; => create new user
+          (let [new-user (user-model/create-user!
+                          {:name          username
+                           :display_name  display-name
+                           :email         email
+                           :password      password})
+                session-user (select-keys new-user
+                                          [:id :name :email :role :display_name])]
             {:status  302
              :headers {"Location" "/"}
              :session (assoc (:session request) :user session-user)
@@ -67,8 +85,9 @@
     (if (nil? user-row)
       {:status 200
        :headers {"Content-Type" "text/html"}
-       :body (auth/login-page request "Invalid email or password.")}
-      (let [session-user (select-keys user-row [:id :name :email :role])]
+       :body "Invalid email or password."}
+      (let [session-user (select-keys user-row
+                                      [:id :name :display_name :email :role])]
         {:status 302
          :headers {"Location" "/"}
          :session (assoc (:session request) :user session-user)
