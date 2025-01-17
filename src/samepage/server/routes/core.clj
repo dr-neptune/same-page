@@ -14,8 +14,13 @@
    :body "Not Found"})
 
 (defn routes
+  "Defines all of our app routes using Reitit."
   [system]
-  [;; Home
+  [;; 1) Serve a user’s dashboard by name => /:username
+   ["/u/:username"
+    {:get {:handler (partial #'home/user-dashboard-handler system)}}]
+
+   ;; 2) Root page => /
    ["/"
     {:get {:handler (partial #'home/root-page-handler system)}}]
 
@@ -43,19 +48,15 @@
    ;; Goals
    ["/goals"
     {:post {:handler (partial #'goals/create-goal-handler system)}}]
-   ["/goals/:id/desc"
-    {:get {:handler (partial #'goals/get-goal-detail-handler system)}}]
    ["/goals/new"
     {:get {:handler (partial #'goals/get-new-goal-handler system)}}]
-   ["/goals/:id/delete"
-    {:post {:handler (partial #'goals/delete-goal-handler system)}}]
+   ["/goals/:id/desc"
+    {:get {:handler (partial #'goals/get-goal-detail-handler system)}}]
    ["/goals/:id/edit"
     {:get  {:handler (partial #'goals/get-edit-goal-handler system)}
      :post {:handler (partial #'goals/post-edit-goal-handler system)}}]
-
-   ;; Admin
-   ["/admin"
-    {:get {:handler (partial #'admin/admin-handler system)}}]
+   ["/goals/:id/delete"
+    {:post {:handler (partial #'goals/delete-goal-handler system)}}]
 
    ;; Practice logs
    ["/goals/:goal-id/practice-logs"
@@ -63,9 +64,14 @@
      :post {:handler (partial #'pl/post-practice-log-handler system)}}]
    ["/goals/:goal-id/practice-logs/new"
     {:get {:handler (partial #'pl/get-new-practice-log-handler system)}}]
+
+   ;; Admin
+   ["/admin"
+    {:get {:handler (partial #'admin/admin-handler system)}}]
    ])
 
 (defn root-handler
+  "Builds the top-level Ring handler, including a not-found fallback."
   [system request]
   (let [handler (reitit-ring/ring-handler
                  (reitit-ring/router (routes system))
