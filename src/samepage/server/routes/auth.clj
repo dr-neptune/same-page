@@ -86,8 +86,7 @@
       {:status 200
        :headers {"Content-Type" "text/html"}
        :body "Invalid email or password."}
-      (let [session-user (select-keys user-row
-                                      [:id :name :display_name :email :role])]
+      (let [session-user user-row]
         {:status 302
          :headers {"Location" "/"}
          :session (assoc (:session request) :user session-user)
