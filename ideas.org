@@ -44,6 +44,7 @@ picture has been added, or display their picture if they have uploaded
 a profile pic. If the user updates their display name, make it show in
 their dashboard as Your Dashboard, DISPLAY_NAME
 
+We need to handle practice time in the form of minutes instead of integers
 
 * <2025-01-15 Wed>
 
