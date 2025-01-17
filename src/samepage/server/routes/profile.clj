@@ -24,9 +24,7 @@
   (let [session (:session request)
         user    (:user session)]
     (if (nil? user)
-      {:status 302
-       :headers {"Location" "/login"}
-       :body ""}
+      {:status 302 :headers {"Location" "/login"} :body ""}
       (let [params          (:params request)
             new-display    (get params "display_name" "")
             new-profile-pic (get params "profile_pic" "")
@@ -35,9 +33,9 @@
                              user-id
                              {:display_name new-display
                               :profile_pic  new-profile-pic})
-            ;; Merge updated fields back into session user
             session-user   (merge user updated-user)]
+        ;; CHANGE the redirect from "/profile" to "/"
         {:status 302
-         :headers {"Location" "/profile"}
+         :headers {"Location" "/"}
          :session (assoc session :user session-user)
          :body ""}))))
