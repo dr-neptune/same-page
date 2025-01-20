@@ -140,15 +140,21 @@
      (str "Edit Goal: " (:title goal))]
     (edit-goal-form goal)]))
 
+(defn- minutes->hhmm [m]
+  (let [hrs (quot m 60)
+        min (rem m 60)]
+    (str hrs "h " min "m")))
 
-;; A small helper to format progress, so if there's a target we show "progress / target"
 (defn- progress-str
-  [{:keys [target_hours augmented-progress progress_hours]}]
-  (let [actual (or augmented-progress progress_hours 0)]
+  "Given a goal map, show `augmented-progress` as Hh Mm.
+   If there’s a target_hours, show 'Xh Ym / T h'."
+  [{:keys [target_hours augmented-progress]}]
+  (let [total-mins (or augmented-progress 0)]
     (if target_hours
-      (str actual " / " target_hours)
-      (str actual))))
-
+      (str (minutes->hhmm total-mins)
+           " / "
+           target_hours "h")
+      (minutes->hhmm total-mins))))
 
 (defn user-goals-table
   "User-facing goals table with expand-on-click. Shows Title, Progress, Edit, Delete columns.

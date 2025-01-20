@@ -23,8 +23,9 @@
         raw-goals  (when user (goal-model/get-goals-for-user user-id))
         user-goals (when raw-goals
                      (map (fn [g]
-                            (let [sum-durations (pl/get-total-duration-for-goal (:id g))
-                                  combined (+ (or (:progress_hours g) 0) sum-durations)]
+                            (let [sum-durations (pl/get-total-duration-for-goal (:id g)) ; sums up minutes
+                                  progress-mins (* (or (:progress_hours g) 0) 60)
+                                  combined      (+ progress-mins sum-durations)]
                               (assoc g :augmented-progress combined)))
                           raw-goals))]
     (layout/page-layout

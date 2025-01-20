@@ -1,3 +1,26 @@
+* <2025-01-20 Mon>
+
+Let's start with integer -> minutes
+
+Add avatar to public page
+remove edit / delete from public page view
+
+change goals to something more free-form like the notes. Keep the
+expansion? Maybe always show the top 5 latest? Add an optional icon to
+the goals
+
+write a readme for this project? Maybe give it a different name?
+
+It would be neat to make it more like a micro-blogging platform. You
+can share small snippets of progress, or you can share larger blog
+posts.
+
+Would be cool to allow each user to select a theme, and when they do
+their public page has that theme
+
+It would be cool to have gpt try to refactor things to be a bit
+cleaner, and to see where macros could be used.
+
 * <2025-01-17 Fri>
 It didn't go so well yesterday, and I didn't actually get the app
 running. Trying from scratch today:

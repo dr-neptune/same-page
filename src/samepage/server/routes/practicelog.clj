@@ -41,11 +41,14 @@
     (if (nil? user)
       {:status 302 :headers {"Location" "/login"} :body ""}
       (let [practice-date-str (or (get params "practice_date") "")
-            duration          (some-> (get params "duration") (Double/parseDouble))
+            ;; Pull out hours and minutes, default to 0 if missing:
+            hrs (Integer/parseInt (get params "hours" "0"))
+            min (Integer/parseInt (get params "minutes" "0"))
+            duration (+ (* 60 hrs) min)
             notes             (get params "notes")]
         (pl-model/create-practice-log!
          {:goal-id goal-id
-          :duration duration
+          :duration duration      ;; Store total minutes
           :notes notes
           :practice-date
           (if (str/blank? practice-date-str)
