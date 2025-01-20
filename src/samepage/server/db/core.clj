@@ -52,6 +52,7 @@
           [:description    :text]
           [:target_hours   :int]
           [:progress_hours :int :not-null [:raw "DEFAULT 0"]]
+          [:icon          [:varchar 255] :not-null [:raw "DEFAULT ''"]]
           [:created_at     :timestamp :not-null [:raw "DEFAULT CURRENT_TIMESTAMP"]]
           [:updated_at     :timestamp :not-null [:raw "DEFAULT CURRENT_TIMESTAMP"]]]}
         [sql-str & params] (sql/format create-goals)]

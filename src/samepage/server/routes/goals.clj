@@ -23,25 +23,19 @@
         user        (get-in request [:session :user])
         user-id     (:id user)]
     (if (nil? user-id)
-      ;; If user-id is nil => either user not logged in or session not set
-      {:status 302
-       :headers {"Location" "/login"}
-       :body ""}
-      ;; Otherwise proceed
+      {:status 302 :headers {"Location" "/login"} :body ""}
       (let [title        (get params "title" "")
             description  (get params "description" "")
-            target-hours (some-> (get params "target_hours" "")
-                                 not-empty
-                                 (Integer/parseInt))
-            progress-hrs (some-> (get params "progress_hours" "")
-                                 not-empty
-                                 (Integer/parseInt))]
+            target-hours (some-> (get params "target_hours" "") not-empty Integer/parseInt)
+            progress-hrs (some-> (get params "progress_hours" "") not-empty Integer/parseInt)
+            icon         (get params "icon" "")]  ;; collects icon
         (goal-model/create-goal!
          {:user-id        user-id
           :title          title
           :description    description
           :target_hours   target-hours
-          :progress_hours progress-hrs})
+          :progress_hours progress-hrs
+          :icon           icon})
         {:status 302
          :headers {"Location" "/"}
          :body ""}))))
@@ -72,11 +66,9 @@
           {:status 403 :body "You do not have permission to delete this goal."})))))
 
 (defn get-goal-detail-handler
-  "Expands a goal row, showing the goal's description, last update,
-   plus top 5 practice logs + link to see all logs."
+  "Expands a goal row, showing the goal's description, last update, plus top 5 logs."
   [_system request]
-  (let [goal-id (some-> (get-in request [:path-params :id])
-                        (Integer/parseInt))
+  (let [goal-id (some-> (get-in request [:path-params :id]) (Integer/parseInt))
         goal    (goal-model/get-goal-by-id goal-id)]
     (if (nil? goal)
       {:status 404
@@ -86,59 +78,38 @@
         {:status 200
          :headers {"Content-Type" "text/html"}
          :body (str
-                (hiccup2.core/html
-                 ;; We return a <td> snippet for the expanded row:
+                (html
                  [:td
                   {:colspan "3"
                    :class "p-4 align-top"}
-
-                  ;; Basic goal info:
                   [:p
                    [:strong "Description: "]
                    (or (:description goal) "No description.")]
-                  [:p
-                   (str "Last update: " (:updated_at goal))]
+                  [:p (str "Last update: " (:updated_at goal))]
 
-                  ;; Link to all practice logs
                   [:div {:class "mt-2"}
-                   [:a
-                    {:href  (str "/goals/" goal-id "/practice-logs")
-                     :class "bg-purple-600 text-white py-2 px-4 rounded hover:bg-purple-700"}
+                   [:a {:href  (str "/goals/" goal-id "/practice-logs")
+                        :class "bg-purple-600 text-white py-2 px-4 rounded hover:bg-purple-700"}
                     "View ALL Practice Logs"]]
-                  ;; Divider:
-                  [:hr
-                   {:class "my-3"}]
-
-                  ;; Up to 5 recent logs
-                  [:p
-                   {:class "font-bold mb-1"}
-                   "Recent Practice Logs:"]
+                  [:hr {:class "my-3"}]
+                  [:p {:class "font-bold mb-1"} "Recent Practice Logs:"]
                   (if (empty? top-5)
                     [:p "No logs yet."]
                     [:table
                      {:class "min-w-full border border-gray-600 text-left"}
                      [:thead
                       [:tr
-                       [:th
-                        {:class "py-1 px-2 border-b border-gray-600"}
-                        "Date"]
-                       [:th
-                        {:class "py-1 px-2 border-b border-gray-600"}
-                        "Duration"]
-                       [:th
-                        {:class "py-1 px-2 border-b border-gray-600"}
-                        "Notes"]]]
+                       [:th {:class "py-1 px-2 border-b border-gray-600"} "Date"]
+                       [:th {:class "py-1 px-2 border-b border-gray-600"} "Duration"]
+                       [:th {:class "py-1 px-2 border-b border-gray-600"} "Notes"]]]
                      [:tbody
                       (for [{:keys [duration notes practice_date]} top-5]
                         [:tr
-                         [:td
-                          {:class "py-1 px-2 border-b border-gray-600"}
+                         [:td {:class "py-1 px-2 border-b border-gray-600"}
                           (str practice_date)]
-                         [:td
-                          {:class "py-1 px-2 border-b border-gray-600"}
-                          (str duration)]
-                         [:td
-                          {:class "py-1 px-2 border-b border-gray-600"}
+                         [:td {:class "py-1 px-2 border-b border-gray-600"}
+                          duration]
+                         [:td {:class "py-1 px-2 border-b border-gray-600"}
                           (or notes "")]])]])]))}))))
 
 (defn get-edit-goal-handler
@@ -181,20 +152,21 @@
       (nil? goal)
       {:status 404 :body "Goal not found."}
 
-      (and (not= (:user_id goal) (:id user))
-           (not= "admin" (:role user)))
+      (and (not= (:user_id goal) (:id user)) (not= "admin" (:role user)))
       {:status 403 :body "You do not have permission to edit this goal."}
 
       :else
       (let [title        (get params "title")
             description  (get params "description")
             target-hours (some-> (get params "target_hours") not-empty Integer/parseInt)
-            progress-hrs (some-> (get params "progress_hours") not-empty Integer/parseInt)]
+            progress-hrs (some-> (get params "progress_hours") not-empty Integer/parseInt)
+            icon         (get params "icon" "")] ;; NEW
         (goal-model/update-goal! goal-id
                                  {:title          title
                                   :description    description
                                   :target_hours   target-hours
-                                  :progress_hours progress-hrs})
+                                  :progress_hours progress-hrs
+                                  :icon           icon})
         {:status 302
          :headers {"Location" "/"}
          :body ""}))))

@@ -5,6 +5,8 @@ Let's start with integer -> minutes
 Add avatar to public page
 remove edit / delete from public page view
 
+add icons to goals
+
 change goals to something more free-form like the notes. Keep the
 expansion? Maybe always show the top 5 latest? Add an optional icon to
 the goals
@@ -30,6 +32,7 @@ their public page has that theme
 
 It would be cool to have gpt try to refactor things to be a bit
 cleaner, and to see where macros could be used.
+
 
 * <2025-01-17 Fri>
 It didn't go so well yesterday, and I didn't actually get the app

@@ -9,8 +9,8 @@
 (set! *warn-on-reflection* true)
 
 (defn create-goal!
-  "Insert a new goal row with user_id, title, description, target_hours, progress_hours."
-  [{:keys [user-id title description target_hours progress_hours]}]
+  "Insert a new goal row with user_id, title, icon, etc."
+  [{:keys [user-id title description target_hours progress_hours icon]}]
   (let [now (Instant/now)
         prog (or progress_hours 0)
         insert-query
@@ -20,6 +20,7 @@
                         :description    description
                         :target_hours   target_hours
                         :progress_hours prog
+                        :icon           (or icon "")
                         :created_at     now
                         :updated_at     now}])
             (sql/format))]
@@ -27,6 +28,8 @@
                    {:builder-fn rs/as-unqualified-lower-maps})))
 
 (defn get-goals-for-user
+  "Fetch all goals for a specific user (descending by created_at).
+   NOTE: Must include :icon so the UI can render the icon."
   [user-id]
   (let [select-query
         (-> (h/select :id
@@ -35,6 +38,7 @@
                        :description
                        :target_hours
                        :progress_hours
+                       :icon                 ;; <-- Added
                        :created_at
                        :updated_at)
             (h/from :goals)
@@ -45,6 +49,7 @@
                    {:builder-fn rs/as-unqualified-lower-maps})))
 
 (defn get-all-goals
+  "Fetch all goals (for admin). Also include :icon."
   []
   (let [select-query
         (-> (h/select :id
@@ -53,6 +58,7 @@
                        :description
                        :target_hours
                        :progress_hours
+                       :icon              ;; <-- Added
                        :created_at
                        :updated_at)
             (h/from :goals)
@@ -62,6 +68,7 @@
                    {:builder-fn rs/as-unqualified-lower-maps})))
 
 (defn get-goal-by-id
+  "Load a single goal by ID, including :icon."
   [goal-id]
   (let [select-query
         (-> (h/select :id
@@ -70,6 +77,7 @@
                        :description
                        :target_hours
                        :progress_hours
+                       :icon             ;; <-- Added
                        :created_at
                        :updated_at)
             (h/from :goals)
@@ -79,7 +87,7 @@
                           {:builder-fn rs/as-unqualified-lower-maps}))))
 
 (defn update-goal!
-  "Update an existing goal by ID. Supply a map of updated fields (title, description, etc.)."
+  "Update an existing goal by ID. Supply a map of updated fields (title, description, icon, etc.)."
   [goal-id updates]
   (let [now (Instant/now)
         update-stmt

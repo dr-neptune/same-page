@@ -4,12 +4,13 @@
             [ring.adapter.jetty :as jetty]
             [ring.middleware.params :refer [wrap-params]]
             [ring.middleware.session :refer [wrap-session]]
+            [ring.middleware.resource :refer [wrap-resource]]
             [ring.middleware.session.memory :refer [memory-store]]))
 
 (defn make-app [system]
   (-> (partial #'routes/root-handler system)
       wrap-params
-      ;; Must wrap session after wrap-params so we can parse the form params
+      (wrap-resource "public")
       (wrap-session
         {:store (memory-store)
          :cookie-attrs {:secure false

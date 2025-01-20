@@ -28,6 +28,9 @@
       ;; Tailwind + htmx
       [:script {:src "https://cdn.tailwindcss.com"}]
       [:script {:src "https://unpkg.com/htmx.org@1.9.2"}]
+      [:link
+       {:rel "stylesheet"
+        :href "/css/webfont/tabler-icons.min.css"}]
       ;; Our custom JS for goal row toggling:
       [:script
        "function toggleGoalRow(goalId) {

@@ -12,7 +12,7 @@
        [:th {:class "py-2 px-4 border-b border-gray-600"} "Title"]
        [:th {:class "py-2 px-4 border-b border-gray-600"} "Progress (hrs)"]
        [:th {:class "py-2 px-4 border-b border-gray-600"} "Created"]
-       [:th {:class "py-2 px-4 border-b border-gray-600"} "Edit"] ; <-- Add this
+       [:th {:class "py-2 px-4 border-b border-gray-600"} "Edit"]
        [:th {:class "py-2 px-4 border-b border-gray-600"} "Delete"]]]
      [:tbody
       (mapcat
@@ -79,6 +79,16 @@
              :class "w-32 p-2 border border-gray-300 rounded bg-[#2f2b3b] text-[#e0def2]"
              :min "0"
              :value "0"}]]
+   ;; NEW ICON FIELD
+   [:div
+    [:label {:class "block font-semibold"} "Tabler Icon Name (optional):"]
+    [:input {:type "text"
+             :name "icon"
+             :placeholder "e.g. music, alarm, guitar, etc."
+             :class "w-full p-2 border border-gray-300 rounded bg-[#2f2b3b] text-[#e0def2]"}]
+    [:p {:class "text-sm text-gray-400"}
+     "Enter just the name from the Tabler icon set (e.g. \"music\" => ti ti-music)."]]
+
    [:button {:type "submit"
              :class "mt-2 bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700"}
     "Create Goal"]])
@@ -94,7 +104,6 @@
     (goal-form)]))
 
 (defn edit-goal-form
-  "A form for editing a goal, pre-populated with current goal data."
   [goal]
   [:form {:action (str "/goals/" (:id goal) "/edit")
           :method "post"
@@ -125,6 +134,16 @@
              :class "w-32 p-2 border border-gray-300 rounded bg-[#2f2b3b] text-[#e0def2]"
              :min "0"
              :value (or (:progress_hours goal) 0)}]]
+   ;; NEW ICON FIELD
+   [:div
+    [:label {:class "block font-semibold"} "Tabler Icon Name (optional):"]
+    [:input {:type "text"
+             :name "icon"
+             :value (or (:icon goal) "")
+             :class "w-full p-2 border border-gray-300 rounded bg-[#2f2b3b] text-[#e0def2]"}]
+    [:p {:class "text-sm text-gray-400"}
+     "Examples: \"music\", \"alarm\", \"guitar\" => uses \"ti ti-music\", etc."]]
+
    [:button {:type "submit"
              :class "mt-2 bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700"}
     "Update Goal"]])
@@ -140,51 +159,40 @@
      (str "Edit Goal: " (:title goal))]
     (edit-goal-form goal)]))
 
+;; For the “card style” user table:
 (defn- minutes->hhmm [m]
   (let [hrs (quot m 60)
         min (rem m 60)]
     (str hrs "h " min "m")))
 
 (defn- progress-str
-  "Given a goal map, show `augmented-progress` as Hh Mm.
-   If there’s a target_hours, show 'Xh Ym / T h'."
   [{:keys [target_hours augmented-progress]}]
   (let [total-mins (or augmented-progress 0)]
     (if target_hours
-      (str (minutes->hhmm total-mins)
-           " / "
-           target_hours "h")
+      (str (minutes->hhmm total-mins) " / " target_hours "h")
       (minutes->hhmm total-mins))))
 
 (defn user-goals-table
-  "User-facing goals in a list of 'cards' with expand-on-click,
-   replacing the old <table>."
+  "Render user's goals as cards with icon next to the title."
   [goals]
   (if (empty? goals)
     [:p "No goals yet!"]
-    ;; Wrap them in a simple <div> with vertical spacing
     [:div {:class "space-y-4"}
-     (for [{:keys [id title] :as goal} goals]
-       ;; Each goal is now a "card"
+     (for [{:keys [id title icon] :as goal} goals]
        [:div {:key        (str "goal-" id)
-              ;; Some background, padding, rounding, etc.
               :class      "bg-[#2f2b3b] p-4 rounded-md hover:bg-[#3b2a40] cursor-pointer"
-              ;; On-click => toggle the detail
               :onclick    (str "toggleGoalRow('" id "');")
               :data-state "closed"}
-        ;; Top "row": Title + Progress + (Edit / Delete) actions
-        [:div {:class "flex justify-between items-center"}
-         ;; Left: Title + progress
-         [:div
-          [:h3 {:class "text-lg font-bold mb-1"}
-           title]
-          [:p {:class "text-sm text-gray-400"}
-           ;; progress-str is your existing helper that prints "Xh Ym / T h"
-           (progress-str goal)]]
-         ;; Right: Edit and Delete
+        [:div {:class "flex items-center justify-between"}
+         [:div {:class "flex items-center space-x-3"}
+          (when (seq icon)
+            [:i {:class (str "ti ti-" icon " text-2xl text-purple-300")}])
+          [:div
+           [:h3 {:class "text-lg font-bold"} title]
+           [:p {:class "text-sm text-gray-400"} (progress-str goal)]]]
          [:div
           [:a {:href (str "/goals/" id "/edit")
-               :class "text-blue-400 hover:underline mr-2"}
+               :class "text-blue-400 hover:underline mr-3"}
            "✏️"]
           [:form {:action   (str "/goals/" id "/delete")
                   :method   "post"
@@ -193,10 +201,7 @@
            [:button {:type  "submit"
                      :class "text-red-400 hover:underline"}
             "🗑️"]]]]
-        ;; The detail area, initially hidden. We'll fill it via htmx on expansion.
-        [:div {:id         (str "goal-detail-" id)
+        ;; hidden detail area
+        [:div {:id (str "goal-detail-" id)
                :data-state "closed"
-               ;; Tailwind: "hidden" so it doesn’t show until toggled open
-               :class      "mt-2 hidden"}
-         ;; htmx will replace this <div> with partial HTML from /goals/:id/desc
-         ]])]))
+               :class "mt-2 hidden"}]])]))
