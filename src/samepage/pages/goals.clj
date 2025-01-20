@@ -157,51 +157,46 @@
       (minutes->hhmm total-mins))))
 
 (defn user-goals-table
-  "User-facing goals table with expand-on-click. Shows Title, Progress, Edit, Delete columns.
-   Clicking the row toggles a second 'detail' row containing description + practice logs."
+  "User-facing goals in a list of 'cards' with expand-on-click,
+   replacing the old <table>."
   [goals]
   (if (empty? goals)
     [:p "No goals yet!"]
-    [:table {:class "min-w-full border border-gray-600 text-left mb-6"}
-     [:thead
-      [:tr
-       [:th {:class "py-2 px-4 border-b border-gray-600"} "Title"]
-       [:th {:class "py-2 px-4 border-b border-gray-600"} "Progress (hrs)"]
-       [:th {:class "py-2 px-4 border-b border-gray-600"} "Edit"]
-       [:th {:class "py-2 px-4 border-b border-gray-600"} "Delete"]]]
-     [:tbody
-      (mapcat
-       (fn [{:keys [id title] :as goal}]
-         (let [prog (progress-str goal)]
-           [;; Primary row (click to expand)
-            [:tr {:key         (str "goal-" id)
-                  :onclick     (str "toggleGoalRow('" id "');")
-                  :data-state  "closed"
-                  :class       "cursor-pointer hover:bg-[#3b2a40]"}
-             ;; Title
-             [:td {:class "py-2 px-4 border-b border-gray-600"} title]
-             ;; Progress
-             [:td {:class "py-2 px-4 border-b border-gray-600"} prog]
-             ;; Edit icon
-             [:td {:class "py-2 px-4 border-b border-gray-600 text-right"}
-              [:a {:href (str "/goals/" id "/edit")
-                   :class "text-blue-500 hover:underline"}
-               "✏️"]]
-             ;; Delete icon
-             [:td {:class "py-2 px-4 border-b border-gray-600 text-right"}
-              [:form
-               {:action   (str "/goals/" id "/delete")
-                :method   "post"
-                :onsubmit "return confirm('Are you sure you want to delete this goal?');"
-                :class    "inline-block"}
-               [:button {:type  "submit"
-                         :class "text-red-500 hover:underline"}
-                "🗑️"]]]]
-            ;; Detail row (hidden by default, filled on expand)
-            [:tr {:key        (str "goal-detail-" id)
-                  :id         (str "goal-detail-" id)
-                  :data-state "closed"}
-             ;; We'll fill this <td> from /goals/:id/desc via htmx
-             [:td {:colspan 4
-                   :class "p-0 border-b border-gray-600"} ""]]]))
-       goals)]]))
+    ;; Wrap them in a simple <div> with vertical spacing
+    [:div {:class "space-y-4"}
+     (for [{:keys [id title] :as goal} goals]
+       ;; Each goal is now a "card"
+       [:div {:key        (str "goal-" id)
+              ;; Some background, padding, rounding, etc.
+              :class      "bg-[#2f2b3b] p-4 rounded-md hover:bg-[#3b2a40] cursor-pointer"
+              ;; On-click => toggle the detail
+              :onclick    (str "toggleGoalRow('" id "');")
+              :data-state "closed"}
+        ;; Top "row": Title + Progress + (Edit / Delete) actions
+        [:div {:class "flex justify-between items-center"}
+         ;; Left: Title + progress
+         [:div
+          [:h3 {:class "text-lg font-bold mb-1"}
+           title]
+          [:p {:class "text-sm text-gray-400"}
+           ;; progress-str is your existing helper that prints "Xh Ym / T h"
+           (progress-str goal)]]
+         ;; Right: Edit and Delete
+         [:div
+          [:a {:href (str "/goals/" id "/edit")
+               :class "text-blue-400 hover:underline mr-2"}
+           "✏️"]
+          [:form {:action   (str "/goals/" id "/delete")
+                  :method   "post"
+                  :onsubmit "return confirm('Are you sure you want to delete this goal?');"
+                  :class    "inline-block"}
+           [:button {:type  "submit"
+                     :class "text-red-400 hover:underline"}
+            "🗑️"]]]]
+        ;; The detail area, initially hidden. We'll fill it via htmx on expansion.
+        [:div {:id         (str "goal-detail-" id)
+               :data-state "closed"
+               ;; Tailwind: "hidden" so it doesn’t show until toggled open
+               :class      "mt-2 hidden"}
+         ;; htmx will replace this <div> with partial HTML from /goals/:id/desc
+         ]])]))

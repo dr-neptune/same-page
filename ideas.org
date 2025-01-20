@@ -15,6 +15,16 @@ It would be neat to make it more like a micro-blogging platform. You
 can share small snippets of progress, or you can share larger blog
 posts.
 
+Can we make the dashboard top level look a bit cleaner? Maybe a cut
+off section with a horizontal rule between the content and the user
+information. Something like
+
+user avatar ----- Your Dashboard, Username
+-------------------
+Notes
+
+Goals
+
 Would be cool to allow each user to select a theme, and when they do
 their public page has that theme
 

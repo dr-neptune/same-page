@@ -31,20 +31,23 @@
       ;; Our custom JS for goal row toggling:
       [:script
        "function toggleGoalRow(goalId) {
-          let detailId = 'goal-detail-' + goalId;
-          let row = document.getElementById(detailId);
-          if (row) {
-            if (row.dataset.state === 'open') {
-              // It's open => collapse:
-              row.innerHTML = '';
-              row.dataset.state = 'closed';
-            } else {
-              // It's closed => expand via HTMX:
-              row.dataset.state = 'open';
-              htmx.ajax('GET', '/goals/' + goalId + '/desc', row);
-            }
-          }
-        }"]]
+    let detailId = 'goal-detail-' + goalId;
+    let detailEl = document.getElementById(detailId);
+    if (!detailEl) return;
+
+    if (detailEl.dataset.state === 'open') {
+      // It's open => collapse:
+      detailEl.dataset.state = 'closed';
+      // Remove the content & hide the div
+      detailEl.innerHTML = '';
+      detailEl.classList.add('hidden');
+    } else {
+      // It's closed => expand via HTMX:
+      detailEl.dataset.state = 'open';
+      detailEl.classList.remove('hidden');
+      htmx.ajax('GET', '/goals/' + goalId + '/desc', detailEl);
+    }
+  }"]]
      [:body
       {:class "min-h-screen bg-[#1e1e28] text-[#e0def2]"}
 
