@@ -93,9 +93,8 @@
 
 
 (defn user-notes-list
-  "A simpler, user-facing view of notes: just the note text + edit/delete.
-   If empty, shows 'No notes yet!'."
-  [notes]
+  "A user-facing view of notes. If `:read-only? true`, we skip edit/delete links."
+  [notes & {:keys [read-only?] :or {read-only? false}}]
   (if (empty? notes)
     [:p "No notes yet!"]
     [:div {:class "space-y-4 mt-4"}
@@ -103,21 +102,22 @@
        [:div {:key   (str "note-" id)
               :class "border border-gray-600 rounded p-4 bg-[#2f2b3b]
                       flex justify-between items-start"}
-        ;; The note text on the left:
-        [:div {:class "text-[#e0def2]"}
-         text]
-        ;; Edit / Delete icons on the right, text-right
-        [:div {:class "ml-4"}
-         ;; Edit link
-         [:a {:href (str "/notes/" id "/edit")
-              :class "text-blue-400 hover:underline mr-2"}
-          "✏️"]
-         ;; Delete form
-         [:form
-          {:action   (str "/notes/" id "/delete")
-           :method   "post"
-           :class    "inline-block"
-           :onsubmit "return confirm('Are you sure you want to delete this note?');"}
-          [:button {:type "submit"
-                    :class "text-red-400 hover:underline"}
-           "🗑️"]]]])]))
+        ;; The note text on the left
+        [:div {:class "text-[#e0def2]"} text]
+
+        ;; Only show Edit/Delete if not read-only
+        (when-not read-only?
+          [:div {:class "ml-4"}
+           ;; Edit link
+           [:a {:href (str "/notes/" id "/edit")
+                :class "text-blue-400 hover:underline mr-2"}
+            "✏️"]
+           ;; Delete form
+           [:form
+            {:action   (str "/notes/" id "/delete")
+             :method   "post"
+             :class    "inline-block"
+             :onsubmit "return confirm('Are you sure you want to delete this note?');"}
+            [:button {:type "submit"
+                      :class "text-red-400 hover:underline"}
+             "🗑️"]]])])]))

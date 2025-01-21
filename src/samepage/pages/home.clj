@@ -59,7 +59,6 @@
         ;; -----------------------------------------------------
         ;; Logged IN => show "Your Dashboard"
         [:div
-         ;; Top area: big avatar on the left, "Your Dashboard" on the right
          [:div {:class "flex items-center justify-between mb-4"}
           (if (seq (str (:profile_pic user)))
             [:img {:src   (:profile_pic user)
@@ -93,29 +92,43 @@
            "Create a Goal"]]
          (goals/user-goals-table user-goals)])])))
 
-
 (defn user-dashboard-page
+  "Handler for GET /u/:username => shows a 'public' read-only dashboard for `user-record`."
   [request user-record]
-  (let [user-name  (:name user-record)
-        user-id    (:id user-record)
-        user-notes (note-model/get-notes-for-user user-name)
-        raw-goals  (goal-model/get-goals-for-user user-id)
-        user-goals (map (fn [g]
-                          (let [sum-durations (pl/get-total-duration-for-goal (:id g))
-                                combined (+ (or (:progress_hours g) 0) sum-durations)]
-                            (assoc g :augmented-progress combined)))
-                        raw-goals)]
+  (let [display     (or (:display_name user-record) (:name user-record))
+        user-name   (:name user-record)
+        user-id     (:id user-record)
+        user-notes  (note-model/get-notes-for-user user-name)
+        raw-goals   (goal-model/get-goals-for-user user-id)
+        user-goals  (map (fn [g]
+                           (let [sum-durations (pl/get-total-duration-for-goal (:id g))
+                                 combined      (+ (or (:progress_hours g) 0) sum-durations)]
+                             (assoc g :augmented-progress combined)))
+                         raw-goals)]
     (layout/page-layout
      request
-     (str "Public Dashboard - " user-name)
+     display
      [:div {:class "max-w-2xl mx-auto bg-[#2a2136] p-6 rounded shadow-md"}
-      [:h1 {:class "text-3xl mb-4 font-bold"}
-       (str user-name "'s Public Dashboard")]
+
+      ;; Top area => avatar on left, display name on right
+      [:div {:class "flex items-center justify-between mb-4"}
+       (if (seq (str (:profile_pic user-record)))
+         [:img {:src   (:profile_pic user-record)
+                :alt   (str display " profile pic")
+                :class "w-32 h-32 object-cover rounded-lg border border-gray-500"}]
+         [:div {:class "w-32 h-32 bg-gray-600 text-gray-300
+                        flex items-center justify-center rounded-lg border border-gray-500"}
+          "No pic"])
+       [:h1 {:class "text-2xl font-bold"} display]]
+
+      ;; A horizontal rule for separation
+      [:hr {:class "mb-6 border-gray-600"}]
 
       ;; NOTES
-      [:h2 {:class "text-xl mb-2 font-semibold"} (str user-name "'s Notes")]
-      (notes/user-notes-list user-notes)
+      [:h2 {:class "text-xl font-semibold mb-2"} "Notes"]
+      ;; read-only? => no edit/delete
+      (notes/user-notes-list user-notes :read-only? true)
 
       ;; GOALS
-      [:h2 {:class "text-xl mt-8 mb-2 font-semibold"} (str user-name "'s Goals")]
-      (goals/user-goals-table user-goals)])))
+      [:h2 {:class "text-xl font-semibold mt-8 mb-2"} "Goals"]
+      (goals/user-goals-table user-goals {:read-only? true})])))

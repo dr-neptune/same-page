@@ -173,35 +173,39 @@
       (minutes->hhmm total-mins))))
 
 (defn user-goals-table
-  "Render user's goals as cards with icon next to the title."
-  [goals]
-  (if (empty? goals)
-    [:p "No goals yet!"]
-    [:div {:class "space-y-4"}
-     (for [{:keys [id title icon] :as goal} goals]
-       [:div {:key        (str "goal-" id)
-              :class      "bg-[#2f2b3b] p-4 rounded-md hover:bg-[#3b2a40] cursor-pointer"
-              :onclick    (str "toggleGoalRow('" id "');")
-              :data-state "closed"}
-        [:div {:class "flex items-center justify-between"}
-         [:div {:class "flex items-center space-x-3"}
-          (when (seq icon)
-            [:i {:class (str "ti ti-" icon " text-2xl text-purple-300")}])
-          [:div
-           [:h3 {:class "text-lg font-bold"} title]
-           [:p {:class "text-sm text-gray-400"} (progress-str goal)]]]
-         [:div
-          [:a {:href (str "/goals/" id "/edit")
-               :class "text-blue-400 hover:underline mr-3"}
-           "✏️"]
-          [:form {:action   (str "/goals/" id "/delete")
-                  :method   "post"
-                  :onsubmit "return confirm('Are you sure you want to delete this goal?');"
-                  :class    "inline-block"}
-           [:button {:type  "submit"
-                     :class "text-red-400 hover:underline"}
-            "🗑️"]]]]
-        ;; hidden detail area
-        [:div {:id (str "goal-detail-" id)
-               :data-state "closed"
-               :class "mt-2 hidden"}]])]))
+  "Render user's goals as cards with icon next to the title.
+   If `:read-only? true`, skip edit/delete links."
+  ([goals] (user-goals-table goals {}))
+  ([goals {:keys [read-only?] :or {read-only? false}}]
+   (if (empty? goals)
+     [:p "No goals yet!"]
+     [:div {:class "space-y-4"}
+      (for [{:keys [id title icon] :as goal} goals]
+        [:div
+         {:key        (str "goal-" id)
+          :class      "bg-[#2f2b3b] p-4 rounded-md hover:bg-[#3b2a40] cursor-pointer"
+          :onclick    (str "toggleGoalRow('" id "');")
+          :data-state "closed"}
+         [:div {:class "flex items-center justify-between"}
+          ;; Left side => icon & title
+          [:div {:class "flex items-center space-x-3"}
+           (when (seq icon)
+             [:i {:class (str "ti ti-" icon " text-2xl text-purple-300")}])
+           [:h3 {:class "text-lg font-bold"} title]]
+          ;; Right side => only show Edit/Delete if not read-only
+          (when-not read-only?
+            [:div
+             [:a {:href (str "/goals/" id "/edit")
+                  :class "text-blue-400 hover:underline mr-3"}
+              "✏️"]
+             [:form {:action   (str "/goals/" id "/delete")
+                     :method   "post"
+                     :onsubmit "return confirm('Delete this goal?');"
+                     :class    "inline-block"}
+              [:button {:type  "submit"
+                        :class "text-red-400 hover:underline"}
+               "🗑️"]]])]
+         ;; This is the hidden detail area for partial expansions:
+         [:div {:id (str "goal-detail-" id)
+                :data-state "closed"
+                :class "mt-2 hidden"}]])])))
