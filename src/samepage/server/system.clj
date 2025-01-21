@@ -9,13 +9,15 @@
 
 (defn make-app [system]
   (-> (partial #'routes/root-handler system)
-      wrap-params
-      (wrap-resource "public")
+      ;; Move wrap-session to the *front*, so that the session is handled
+      ;; before we serve static resources or parse params, etc.
       (wrap-session
         {:store (memory-store)
          :cookie-attrs {:secure false
                         :same-site :lax
-                        :http-only true}})))
+                        :http-only true}})
+      (wrap-resource "public")
+      wrap-params))
 
 (defn start-server [system]
   (db/create-schema!)  ;; If your table structure changed, ensure it matches the real DB

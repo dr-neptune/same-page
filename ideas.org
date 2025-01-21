@@ -1,3 +1,11 @@
+* <2025-01-21 Tue>
+
+Currently when the user registers, it doesn't seem to set a cookie or
+session correctly. Until the user logs in, they are not able to make a
+goal or set their avatar without it failing.
+
+make it look good on mobile!
+
 * <2025-01-20 Mon>
 
 Let's start with integer -> minutes
@@ -8,7 +16,7 @@ remove edit / delete from public page view
 add icons to goals
 
 change goals to something more free-form like the notes. Keep the
-expansion? Maybe always show the top 5 latest? Add an optional icon to
+expansion? Maybe always show the Create a Goaltop 5 latest? Add an optional icon to
 the goals
 
 write a readme for this project? Maybe give it a different name?

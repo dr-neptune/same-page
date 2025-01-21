@@ -7,27 +7,28 @@
             [honey.sql.helpers :as h])
   (:import (java.time Instant)))
 
+
 (defn create-user!
-  "Insert a user row with :role = 'admin' by default, hashing the password.
-   Accepts `:name` (for the username), `:display_name` (optional), `:email`, `:password`."
+  "Insert a user and immediately SELECT it back to get the real :id."
   [{:keys [name display_name email password] :as user-map}]
-  (let [hashed-pw       (hashers/derive password)
-        final-display   (if (clojure.string/blank? display_name)
-                          name               ; fallback to the username
-                          display_name)
-        user-map-2      (-> user-map
-                            (assoc :password hashed-pw)
-                            (assoc :role "admin")
-                            (assoc :display_name final-display))
-        insert-query    (-> (h/insert-into :users)
-                            (h/values [user-map-2])
-                            (sql/format))
-        result          (jdbc/execute! (db/datasource)
-                                       insert-query
-                                       {:return-generated-keys true
-                                        :builder-fn rs/as-unqualified-lower-maps})
-        generated-id    (:id (first result))]
-    (assoc user-map-2 :id generated-id)))
+  (let [hashed-pw      (hashers/derive password)
+        final-display  (if (clojure.string/blank? display_name)
+                         name
+                         display_name)]
+    ;; 1) Insert row, ignoring the generated keys
+    (jdbc/execute!
+      (db/datasource)
+      ["INSERT INTO users (name, display_name, email, password, role)
+        VALUES (?, ?, ?, ?, 'admin')"
+       name final-display email hashed-pw]
+      {:builder-fn rs/as-unqualified-lower-maps})
+
+    ;; 2) Fetch the user row we just inserted (by email). That row *will* have :id
+    (first
+      (jdbc/execute!
+        (db/datasource)
+        ["SELECT * FROM users WHERE email = ?" email]
+        {:builder-fn rs/as-unqualified-lower-maps}))))
 
 (defn find-by-email
   [email]

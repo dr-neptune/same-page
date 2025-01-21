@@ -48,7 +48,7 @@
       // It's closed => expand via HTMX:
       detailEl.dataset.state = 'open';
       detailEl.classList.remove('hidden');
-      htmx.ajax('GET', '/goals/' + goalId + '/desc', detailEl);
+      htmx.ajax('GET', '/goals/' + goalId + '/desc', detailEl, {credentials: 'include'});
     }
   }"]]
      [:body
