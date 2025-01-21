@@ -7,40 +7,39 @@
 
 (defn get-global-feed
   "Returns a seq of maps like:
-   {:feed_type  \"📝\" or \"🎯\" or \"🏋️\"
-    :username   \"alice\"
-    :message    \"Wrote a note: Hello world!\"
-    :created_at #inst ... }
+   {:feed_type \"📝\"|\"🎯\"|\"🏋️\"
+    :username  \"alice\"
+    :profile_pic \"url\"
+    :message   \"Wrote a note...\"
+    :created_at timestamp}
    sorted newest first."
   []
   (let [union-query
         (-> (h/select
-              ;; NOTES feed:
+              ;; 1) NOTES
               [[:raw "'📝'"] :feed_type]
               [[:raw "COALESCE(users.name, '???')"] :username]
+              [[:raw "COALESCE(users.profile_pic, '')"] :profile_pic]
               [[:raw "CONCAT('Wrote a note: ', notes.text)"] :message]
               [[:raw "notes.created_at"] :created_at])
             (h/from :notes)
-            ;; In your DB, notes table has :notes.user_name. We'll attempt an INNER JOIN
-            ;; on users.name. If you want old notes to appear even if the user is gone, use LEFT JOIN.
             (h/join :users [:= :notes.user_name :users.name])
 
-            ;; UNION with GOALS feed:
             (h/union-all
               (-> (h/select
                     [[:raw "'🎯'"] :feed_type]
                     [[:raw "COALESCE(u.name, '???')"] :username]
+                    [[:raw "COALESCE(u.profile_pic, '')"] :profile_pic]
                     [[:raw "CONCAT('Created a new goal: ', goals.title)"] :message]
                     [[:raw "goals.created_at"] :created_at])
                   (h/from :goals)
                   (h/join [:users :u] [:= :goals.user_id :u.id])))
 
-            ;; UNION with PRACTICE LOGS feed:
             (h/union-all
               (-> (h/select
                     [[:raw "'🏋️'"] :feed_type]
                     [[:raw "COALESCE(u2.name, '???')"] :username]
-                    ;; We'll show duration + goal title + optional notes in parentheses
+                    [[:raw "COALESCE(u2.profile_pic, '')"] :profile_pic]
                     [[:raw "
                       CONCAT(
                         'Practiced ', pl.duration, ' min on ',

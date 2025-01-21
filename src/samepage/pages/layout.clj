@@ -1,6 +1,6 @@
 (ns samepage.pages.layout
   (:require [hiccup.page :refer [html5]]
-            [hiccup2.core :as hc])  ;; might use if building partials
+            [hiccup2.core :as hc])
   (:import (java.sql Timestamp)
            (java.time.format DateTimeFormatter)
            (java.time ZoneId)))
@@ -12,10 +12,9 @@
         zdt       (.atZone instant (ZoneId/systemDefault))]
     (.format zdt formatter)))
 
-
 (defn page-layout
-  "Common layout. If user is logged in, display a top bar with a home link on the left,
-   user info on the right, plus an admin link if role=admin. Then show the main content below."
+  "Common site layout with a top bar for navigation (including emojis),
+   plus a toggleGoalRow() script so that expanding goals works."
   [request title & body-content]
   (let [session   (:session request)
         user      (:user session)
@@ -28,62 +27,57 @@
       ;; Tailwind + htmx
       [:script {:src "https://cdn.tailwindcss.com"}]
       [:script {:src "https://unpkg.com/htmx.org@1.9.2"}]
-      [:link
-       {:rel "stylesheet"
-        :href "/css/webfont/tabler-icons.min.css"}]
-      ;; Our custom JS for goal row toggling:
-      [:script
-       "function toggleGoalRow(goalId) {
-    let detailId = 'goal-detail-' + goalId;
-    let detailEl = document.getElementById(detailId);
-    if (!detailEl) return;
+      [:link {:rel "stylesheet"
+              :href "/css/webfont/tabler-icons.min.css"}]]
+     [:body {:class "min-h-screen bg-[#1e1e28] text-[#e0def2]"}
 
-    if (detailEl.dataset.state === 'open') {
-      // It's open => collapse:
-      detailEl.dataset.state = 'closed';
-      // Remove the content & hide the div
-      detailEl.innerHTML = '';
-      detailEl.classList.add('hidden');
-    } else {
-      // It's closed => expand via HTMX:
-      detailEl.dataset.state = 'open';
-      detailEl.classList.remove('hidden');
-      htmx.ajax('GET', '/goals/' + goalId + '/desc', detailEl, {credentials: 'include'});
-    }
-  }"]]
-     [:body
-      {:class "min-h-screen bg-[#1e1e28] text-[#e0def2]"}
-
-      ;; Top bar container: flex with space-between
-      [:div {:class "flex justify-between items-center p-2 bg-[#2a2136] mb-6"}
-       ;; Left side => home link
+      ;; -- TOP NAV --
+      [:div {:class "flex justify-between items-center p-2 bg-[#2a2136]"}
+       ;; Left side => link to Feed
        [:div
         [:a {:href "/"
              :class "text-xl text-purple-400 hover:underline font-bold"}
-         "🏠"]]
+         "📰 Feed"]]
 
-       ;; Right side => user info (if logged in)
-       (when user
-         [:div
-          [:span
-           "Logged in as: "
-           ;; name link (profile page)
-           [:a {:href "/profile"
-                :class "text-pink-400 font-semibold hover:underline"}
-            (or (:name user) "???")]
-           " ("
-           [:span {:class "font-semibold"} (or (:email user) "???")]
-           ")"
-           ;; Admin link with emoji
-           (when is-admin?
-             [:a {:href "/admin"
-                  :class "underline ml-4"}
-              "[🛠]"])
-           ;; Logout link with emoji
-           [:a {:href "/logout"
-                :class "underline ml-4"}
-            "[🚪]"]]])]
+       ;; Right side => depends if user is logged in
+       (if (nil? user)
+         ;; Logged OUT => show Log In & Register
+         [:div {:class "space-x-4"}
+          [:a {:href "/login"
+               :class "underline"} "🔑 Login"]
+          [:a {:href "/register"
+               :class "underline"} "📝 Register"]]
 
-      ;; The main page content
+         ;; Logged IN => show Dashboard, maybe Admin, and Log Out
+         [:div {:class "space-x-4"}
+          [:a {:href "/dashboard"
+               :class "underline"} "🎯 Dashboard"]
+          (when is-admin?
+            [:a {:href "/admin"
+                 :class "underline"} "👑 Admin"])
+          [:a {:href "/logout"
+               :class "underline"} "🔓 Logout"]])]
+
+      ;; MAIN CONTENT
       [:div {:class "p-8"}
-       body-content]])))
+       body-content]
+
+      ;; -- Script for toggling goal rows (expansion) --
+      [:script
+       "function toggleGoalRow(goalId) {
+          let detailId = 'goal-detail-' + goalId;
+          let detailEl = document.getElementById(detailId);
+          if (!detailEl) return;
+
+          if (detailEl.dataset.state === 'open') {
+            // It's open => collapse
+            detailEl.dataset.state = 'closed';
+            detailEl.classList.add('hidden');
+            detailEl.innerHTML = '';
+          } else {
+            // It's closed => expand via HTMX GET
+            detailEl.dataset.state = 'open';
+            detailEl.classList.remove('hidden');
+            htmx.ajax('GET', '/goals/' + goalId + '/desc', detailEl, {credentials: 'include'});
+          }
+        }"]])))

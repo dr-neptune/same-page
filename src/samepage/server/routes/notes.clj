@@ -27,14 +27,14 @@
 
 (defn delete-note-handler
   [_system request]
-  (let [session    (:session request)
-        user       (:user session)
-        note-id    (some-> (get-in request [:path-params :id]) (Integer/parseInt))]
+  (let [session (:session request)
+        user    (:user session)
+        note-id (some-> (get-in request [:path-params :id]) Integer/parseInt)]
     (if (nil? user)
       ;; Not logged in => redirect
-      {:status  302
+      {:status 302
        :headers {"Location" "/login"}
-       :body    ""}
+       :body ""}
       (let [note (note-model/get-note-by-id note-id)]
         (cond
           (nil? note)
@@ -55,7 +55,7 @@
   [_system request]
   (let [session (:session request)
         user    (:user session)
-        note-id (some-> (get-in request [:path-params :id]) (Integer/parseInt))
+        note-id (some-> (get-in request [:path-params :id]) Integer/parseInt)
         note    (note-model/get-note-by-id note-id)]
     (cond
       (nil? user)
@@ -64,23 +64,22 @@
       (nil? note)
       {:status 404 :body "Note not found."}
 
-      ;; authorized if note belongs to them or user is admin
-      (or (= (:user_name note) (:name user))
-          (= "admin" (:role user)))
-      {:status 200
-       :headers {"Content-Type" "text/html"}
-       :body (notes/edit-note-page request note)}
+      (and (not= (:user_name note) (:name user))
+           (not= "admin" (:role user)))
+      {:status 403 :body "You do not have permission to edit this note."}
 
       :else
-      {:status 403 :body "You do not have permission to edit this note."})))
+      {:status 200
+       :headers {"Content-Type" "text/html"}
+       :body (notes/edit-note-page request note)})))
 
 (defn post-edit-note-handler
   [_system request]
-  (let [session   (:session request)
-        user      (:user session)
-        note-id   (some-> (get-in request [:path-params :id]) (Integer/parseInt))
-        note      (note-model/get-note-by-id note-id)
-        params    (:params request)]
+  (let [session (:session request)
+        user    (:user session)
+        note-id (some-> (get-in request [:path-params :id]) Integer/parseInt)
+        note    (note-model/get-note-by-id note-id)
+        params  (:params request)]
     (cond
       (nil? user)
       {:status 302 :headers {"Location" "/login"} :body ""}
@@ -95,7 +94,6 @@
       :else
       (let [new-text (get params "note-text" "")]
         (note-model/update-note! note-id new-text)
-        ;; redirect home (or wherever you like):
         {:status 302
          :headers {"Location" "/"}
          :body ""}))))

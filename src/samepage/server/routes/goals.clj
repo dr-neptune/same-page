@@ -54,7 +54,6 @@
           (nil? goal)
           {:status 404 :body "Goal not found."}
 
-          ;; Owner or admin can delete
           (or (= (:user_id goal) (:id user))
               (= "admin" (:role user)))
           (do
@@ -66,14 +65,9 @@
           :else
           {:status 403 :body "You do not have permission to delete this goal."})))))
 
-;; ----------------------------------------------------------------------------
-;; "Expand" a goal row: shows top-5 logs, etc.
-;;
-;; We'll hide the "View ALL Practice Logs" button unless user is owner/admin.
-;; ----------------------------------------------------------------------------
 (defn get-goal-detail-handler
   "Expands a goal row, showing the goal's description, last update, plus top 5 logs.
-   Conditionally displays 'View ALL Practice Logs' if user is the owner or admin."
+   We'll show a 'View ALL Practice Logs' link if user is the owner or admin."
   [_system request]
   (let [goal-id (some-> (get-in request [:path-params :id]) Integer/parseInt)
         goal    (goal-model/get-goal-by-id goal-id)]
@@ -88,7 +82,7 @@
          :body (str
                 (html
                  [:td
-                  {:colspan "3" :class "p-4 align-top"}
+                  {:colspan "5" :class "p-4 align-top"}
                   ;; Description
                   [:p
                    [:strong "Description: "]
@@ -96,7 +90,7 @@
                   ;; Last updated
                   [:p (str "Last update: " (:updated_at goal))]
 
-                  ;; Conditionally show the 'View ALL Practice Logs' button
+                  ;; Conditionally show 'View ALL Practice Logs' link
                   (when (and user
                              (or (= (:user_id goal) (:id user))
                                  (= "admin" (:role user))))
@@ -171,13 +165,12 @@
             progress-hrs (some-> (get params "progress_hours") not-empty Integer/parseInt)
             icon         (get params "icon" "")]
         (goal-model/update-goal!
-          goal-id
-          {:title          title
-           :description    description
-           :target_hours   target-hours
-           :progress_hours progress-hrs
-           :icon           icon})
+         goal-id
+         {:title          title
+          :description    description
+          :target_hours   target-hours
+          :progress_hours progress-hrs
+          :icon           icon})
         {:status 302
          :headers {"Location" "/"}
          :body ""}))))
-
