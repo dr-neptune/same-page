@@ -59,39 +59,41 @@
         ;; -----------------------------------------------------
         ;; Logged IN => show "Your Dashboard"
         [:div
-         ;; Top area: big avatar on the left, "Your Dashboard" on right
+         ;; Top area: big avatar on the left, "Your Dashboard" on the right
          [:div {:class "flex items-center justify-between mb-4"}
           (if (seq (str (:profile_pic user)))
             [:img {:src   (:profile_pic user)
                    :alt   "Profile Picture"
                    :class "w-32 h-32 object-cover rounded-lg border border-gray-500"}]
             [:div {:class "w-32 h-32 bg-gray-600 text-gray-300
-                           flex items-center justify-center rounded-lg border border-gray-500"}
+                   flex items-center justify-center rounded-lg border border-gray-500"}
              "No pic"])
           [:h1 {:class "text-2xl font-bold"}
-           [:span "Your Dashboard,"]
+           [:span "Your Dashboard, "]
            [:span {:class "text-pink-400"} display]]]
 
-         ;; A horizontal rule to separate top from main content
+         ;; Horizontal rule
          [:hr {:class "mb-6 border-gray-600"}]
 
-         ;; NOTES
-         [:h2 {:class "text-xl mb-2 font-semibold"} "Your Notes"]
-         (notes/user-notes-list user-notes)
-         [:div {:class "mt-4"}
-          [:a {:href "/notes/new"
+         ;; ======================
+         ;; NOTES SECTION
+         [:div {:class "flex items-center justify-between mb-4"}
+          [:h2 {:class "text-xl font-semibold"} "Your Notes"]
+          [:a {:href  "/notes/new"
                :class "bg-purple-600 text-white py-2 px-4 rounded hover:bg-purple-700"}
            "Create a Note"]]
+         (notes/user-notes-list user-notes)
 
-         ;; GOALS
-         [:h2 {:class "text-xl mt-8 mb-2 font-semibold"} "Your Goals"]
-         (goals/user-goals-table user-goals)
-         [:div {:class "mt-2"}
-          [:a {:href "/goals/new"
+         ;; ======================
+         ;; GOALS SECTION
+         [:div {:class "flex items-center justify-between mt-8 mb-4"}
+          [:h2 {:class "text-xl font-semibold"} "Your Goals"]
+          [:a {:href  "/goals/new"
                :class "bg-purple-600 text-white py-2 px-4 rounded hover:bg-purple-700"}
-           "Create a Goal"]]])])))
+           "Create a Goal"]]
+         (goals/user-goals-table user-goals)])])))
 
-;; The new "public" or "shared" dashboard for a given user record
+
 (defn user-dashboard-page
   [request user-record]
   (let [user-name  (:name user-record)

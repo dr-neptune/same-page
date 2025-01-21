@@ -12,10 +12,10 @@
         zdt       (.atZone instant (ZoneId/systemDefault))]
     (.format zdt formatter)))
 
+
 (defn page-layout
   "Common layout. If user is logged in, display a top bar with a home link on the left,
-   user info on the right, plus an admin link if role=admin. Also includes a <script>
-   for toggling goal rows via htmx partial expansions."
+   user info on the right, plus an admin link if role=admin. Then show the main content below."
   [request title & body-content]
   (let [session   (:session request)
         user      (:user session)
@@ -65,19 +65,24 @@
        ;; Right side => user info (if logged in)
        (when user
          [:div
-          ;; "Logged in as: someusername (someemail)"
           [:span
            "Logged in as: "
-           ;; changed to a link
+           ;; name link (profile page)
            [:a {:href "/profile"
                 :class "text-pink-400 font-semibold hover:underline"}
             (or (:name user) "???")]
            " ("
            [:span {:class "font-semibold"} (or (:email user) "???")]
-           ") "
+           ")"
+           ;; Admin link with emoji
            (when is-admin?
-             [:a {:href "/admin" :class "underline ml-4"} "[Admin Panel]"])
-           [:a {:href "/logout" :class "underline ml-4"} "[Logout]"]]])]
+             [:a {:href "/admin"
+                  :class "underline ml-4"}
+              "[🛠]"])
+           ;; Logout link with emoji
+           [:a {:href "/logout"
+                :class "underline ml-4"}
+            "[🚪]"]]])]
 
       ;; The main page content
       [:div {:class "p-8"}

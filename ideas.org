@@ -10,6 +10,14 @@ We need to differentiate between a users personal dashboard and a
 public dashboard. Both should show the notes / goals and user
 information, but the public one shouldn't have edit / delete options
 
+Can we spruce up the Your Notes / Your Goals section? Can we have
+
+Your Notes <--------------> Create a Note button
+Notes
+
+Your Goals <--------------> Create a Goal button
+Goals
+
 * <2025-01-20 Mon>
 
 Let's start with integer -> minutes
