@@ -18,6 +18,12 @@ Notes
 Your Goals <--------------> Create a Goal button
 Goals
 
+Maybe something bigger now
+For each update from any user, if they add a goal, practice session,
+or note have it push to a feed.
+
+
+
 * <2025-01-20 Mon>
 
 Let's start with integer -> minutes
