@@ -33,6 +33,8 @@ their public page has that theme
 It would be cool to have gpt try to refactor things to be a bit
 cleaner, and to see where macros could be used.
 
+Maybe we should start working on a db migration tool? Then we can
+share the changes.
 
 * <2025-01-17 Fri>
 It didn't go so well yesterday, and I didn't actually get the app
