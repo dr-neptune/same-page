@@ -4,6 +4,7 @@
             [samepage.server.routes.auth :as auth]
             [samepage.server.routes.notes :as notes]
             [samepage.server.routes.goals :as goals]
+            [samepage.server.routes.feed :as feed]
             [samepage.server.routes.profile :as profile]
             [samepage.server.routes.practicelog :as pl]
             [samepage.server.routes.admin :as admin]))
@@ -27,6 +28,10 @@
    ;; 2) Root page => /
    ["/"
     {:get {:handler (partial #'home/root-page-handler system)}}]
+
+   ;; Feed
+   ["/feed"
+    {:get {:handler (partial #'feed/feed-handler system)}}]
 
    ;; Auth
    ["/register"

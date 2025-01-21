@@ -63,3 +63,12 @@
                   (sql/format))]
     (jdbc/execute! (db/datasource) query
                    {:builder-fn rs/as-unqualified-lower-maps})))
+
+(defn get-all-practice-logs
+  "Fetch all practice logs across all goals, with the goal_id, created_at, etc."
+  []
+  (let [query "SELECT id, goal_id, duration, notes, practice_date, created_at
+               FROM practice_logs
+               ORDER BY created_at DESC"]
+    (jdbc/execute! (db/datasource) [query]
+                   {:builder-fn rs/as-unqualified-lower-maps})))
