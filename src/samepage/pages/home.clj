@@ -6,8 +6,7 @@
             [samepage.model.goal :as goal-model]
             [samepage.model.practicelog :as pl]))
 
-;; The default root page => either shows welcome (Register/Login)
-;; or "Your Dashboard" if the user is logged in
+
 (defn root-page
   [request]
   (let [session    (:session request)
@@ -17,13 +16,13 @@
                      (if (seq (str (:display_name user)))
                        (:display_name user)
                        (:name user)))
-        user-id    (:id user)  ; May be nil if not logged in
+        user-id    (:id user)
         user-name  (:name user)
         user-notes (when user (note-model/get-notes-for-user user-name))
         raw-goals  (when user (goal-model/get-goals-for-user user-id))
         user-goals (when raw-goals
                      (map (fn [g]
-                            (let [sum-durations (pl/get-total-duration-for-goal (:id g)) ; sums up minutes
+                            (let [sum-durations (pl/get-total-duration-for-goal (:id g))
                                   progress-mins (* (or (:progress_hours g) 0) 60)
                                   combined      (+ progress-mins sum-durations)]
                               (assoc g :augmented-progress combined)))
@@ -32,8 +31,10 @@
      request
      (if user (str "Welcome, " display) "Home - Mastery App")
      [:div {:class "max-w-2xl mx-auto bg-[#2a2136] p-6 rounded shadow-md"}
+
       (if-not user
-        ;; not logged in => show landing
+        ;; -----------------------------------------------------
+        ;; Logged OUT => simple landing
         [:div
          [:h1 {:class "text-3xl mb-2"} "Welcome to the 10,000 Hours Mastery App"]
          [:p "Track your deliberate practice across multiple goals."]
@@ -42,13 +43,12 @@
           [:a {:href "/register"
                :class "bg-purple-600 text-white py-2 px-4 rounded hover:bg-purple-700"}
            "Register Here"]
-
           ;; Login
           [:a {:href "/login"
                :class "bg-purple-600 text-white py-2 px-4 rounded hover:bg-purple-700"}
            "Log In"]
 
-          ;; Optional quick-login example:
+          ;; Quick dev login:
           [:form {:action "/login" :method "post" :class "inline-block ml-2"}
            [:input {:type "hidden" :name "email" :value "old@rottenhat"}]
            [:input {:type "hidden" :name "password" :value "pw"}]
@@ -56,16 +56,24 @@
                      :class "bg-gray-500 text-white py-2 px-4 rounded hover:bg-gray-600"}
             "Quick Login as old@rottenhat"]]]]
 
-        ;; else => user is logged in
+        ;; -----------------------------------------------------
+        ;; Logged IN => show "Your Dashboard"
         [:div
-         (if (seq (str (:profile_pic user)))
-           [:img {:src   (:profile_pic user)
-                  :alt   "Profile Picture"
-                  :class "w-32 h-32 object-cover rounded-full mb-2 rounded-lg"}]
-           [:div {:class "w-32 h-32 bg-gray-600 text-gray-300 mb-2
-                  flex items-center justify-center rounded-lg"}
-            "No pic"])
-         [:h1 {:class "text-3xl mb-4 font-bold"} (str "Your Dashboard, " display)]
+         ;; Top area: big avatar on the left, "Your Dashboard" on right
+         [:div {:class "flex items-center justify-between mb-4"}
+          (if (seq (str (:profile_pic user)))
+            [:img {:src   (:profile_pic user)
+                   :alt   "Profile Picture"
+                   :class "w-32 h-32 object-cover rounded-lg border border-gray-500"}]
+            [:div {:class "w-32 h-32 bg-gray-600 text-gray-300
+                           flex items-center justify-center rounded-lg border border-gray-500"}
+             "No pic"])
+          [:h1 {:class "text-2xl font-bold"}
+           [:span "Your Dashboard,"]
+           [:span {:class "text-pink-400"} display]]]
+
+         ;; A horizontal rule to separate top from main content
+         [:hr {:class "mb-6 border-gray-600"}]
 
          ;; NOTES
          [:h2 {:class "text-xl mb-2 font-semibold"} "Your Notes"]

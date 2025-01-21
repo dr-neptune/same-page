@@ -2,9 +2,13 @@
 
 Currently when the user registers, it doesn't seem to set a cookie or
 session correctly. Until the user logs in, they are not able to make a
-goal or set their avatar without it failing.
+goal or set their avatar without it failing. done
 
 make it look good on mobile!
+
+We need to differentiate between a users personal dashboard and a
+public dashboard. Both should show the notes / goals and user
+information, but the public one shouldn't have edit / delete options
 
 * <2025-01-20 Mon>
 
