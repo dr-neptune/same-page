@@ -3,45 +3,49 @@
             [hiccup2.core :as h]))
 
 (defn feed-page
-  "Renders the global feed. If the user is logged in, show 'Create Note' & 'Create Goal' buttons."
+  "Root feed page. Displays each item with:
+   [ user avatar ][ action icon ] => username + short timestamp => message."
   [request feed-items]
-  (let [user (-> request :session :user)]
-    (layout/page-layout
-     request
-     "Global Feed"
-     [:div {:class "max-w-2xl mx-auto bg-[#2a2136] p-6 rounded shadow-md"}
-      [:h1 {:class "text-3xl mb-4 font-bold"} "Global Activity Feed"]
+  (layout/page-layout
+   request
+   "Global Feed"
+   [:div {:class "max-w-2xl mx-auto bg-[#2a2136] p-6 rounded shadow-md"}
+    [:h1 {:class "text-3xl mb-4 font-bold"} "Global Activity Feed"]
 
-      (when user
-        [:div {:class "flex space-x-4 mb-6"}
-         [:a {:href "/notes/new"
-              :class "bg-purple-600 text-white py-2 px-4 rounded hover:bg-purple-700"}
-          "Create a Note"]
-         [:a {:href "/goals/new"
-              :class "bg-purple-600 text-white py-2 px-4 rounded hover:bg-purple-700"}
-          "Create a Goal"]])
-
-      (if (empty? feed-items)
-        [:p "No items in the feed yet!"]
-        [:ul {:class "space-y-4"}
-         (for [{:keys [feed_type username profile_pic message created_at]} feed-items]
+    (if (empty? feed-items)
+      [:p "No items in the feed yet!"]
+      [:ul {:class "space-y-4"}
+       (for [{:keys [feed_type username profile_pic message created_at]} feed-items]
+         (let [formatted-time (layout/format-timestamp created_at)]
            [:li {:class "border border-gray-600 rounded p-4 bg-[#2f2b3b]"}
-            ;; Row top => avatar, username link, feed emoji, date
-            [:div {:class "flex items-center mb-2 space-x-2"}
-             (if (seq profile_pic)
-               [:img {:src profile_pic
-                      :alt (str username " avatar")
-                      :class "w-8 h-8 object-cover rounded-full border border-gray-500"}]
-               [:div {:class "w-8 h-8 rounded-full bg-gray-600 border border-gray-500
-                              flex items-center justify-center text-sm text-white"}
-                "?"])
-             [:a {:href (str "/u/" username)
-                  :class "text-pink-300 font-semibold hover:underline"}
-              (or username "???")]
-             [:span {:class "text-sm"} feed_type]
-             [:span {:class "text-xs text-gray-400 ml-auto"}
-              (str created_at)]]
+            ;; We'll have a row with 3 'columns':
+            ;; (1) user avatar, (2) feed icon, (3) text content
+            [:div {:class "flex items-center space-x-4"}
+             ;; LEFT column(s) => user avatar + feed icon side by side
+             [:div {:class "flex items-center space-x-2"}
+              ;; user avatar => if profile_pic is blank, fallback
+              (if (seq (str profile_pic))
+                [:img {:src profile_pic
+                       :alt (str username " avatar")
+                       :class "w-12 h-12 object-cover rounded-lg border border-gray-500"}]
+                ;; fallback if no pic
+                [:div {:class "w-12 h-12 rounded-full bg-gray-600 border border-gray-500
+                               flex items-center justify-center text-sm text-white"}
+                 "?"])
+              ;; feed icon => bigger square
+              [:div {:class "w-12 h-12 flex items-center justify-center
+                             rounded-md bg-gray-700 text-2xl"}
+               feed_type]]
 
-            ;; Message
-            [:div {:class "ml-10 text-[#e0def2]"}
-             message]])])])))
+             ;; RIGHT column => user/time on top, then message
+             [:div {:class "flex-1"}
+              ;; First line => user name link + timestamp
+              [:div {:class "mb-1 text-sm text-gray-400"}
+               [:a {:href (str "/u/" username)
+                    :class "text-pink-300 font-semibold hover:underline mr-2"}
+                (or username "???")]
+               formatted-time]
+
+              ;; The main message => e.g. "Note: hi there", "Goal: become a rockstar", etc.
+              [:div {:class "text-[#e0def2]"}
+               message]]]]))])]))

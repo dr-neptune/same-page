@@ -9,32 +9,34 @@
   "Returns a seq of maps like:
    {:feed_type \"📝\"|\"🎯\"|\"🏋️\"
     :username  \"alice\"
-    :profile_pic \"url\"
-    :message   \"Wrote a note...\"
-    :created_at timestamp}
+    :profile_pic \"(unused for feed now)\"
+    :message   \"Note: Hi all\"
+    :created_at #inst}
    sorted newest first."
   []
   (let [union-query
         (-> (h/select
-              ;; 1) NOTES
+              ;; 1) NOTES => feed_type 📝, message => "Note: text"
               [[:raw "'📝'"] :feed_type]
               [[:raw "COALESCE(users.name, '???')"] :username]
               [[:raw "COALESCE(users.profile_pic, '')"] :profile_pic]
-              [[:raw "CONCAT('Wrote a note: ', notes.text)"] :message]
+              [[:raw "CONCAT('Note: ', notes.text)"] :message]
               [[:raw "notes.created_at"] :created_at])
             (h/from :notes)
             (h/join :users [:= :notes.user_name :users.name])
 
+            ;; 2) GOALS => feed_type 🎯, message => "Goal: <title>"
             (h/union-all
               (-> (h/select
                     [[:raw "'🎯'"] :feed_type]
                     [[:raw "COALESCE(u.name, '???')"] :username]
                     [[:raw "COALESCE(u.profile_pic, '')"] :profile_pic]
-                    [[:raw "CONCAT('Created a new goal: ', goals.title)"] :message]
+                    [[:raw "CONCAT('Goal: ', goals.title)"] :message]
                     [[:raw "goals.created_at"] :created_at])
                   (h/from :goals)
                   (h/join [:users :u] [:= :goals.user_id :u.id])))
 
+            ;; 3) PRACTICE => feed_type 🏋️, message => "Practice: <duration> min: <goal title>: <notes>"
             (h/union-all
               (-> (h/select
                     [[:raw "'🏋️'"] :feed_type]
@@ -42,13 +44,10 @@
                     [[:raw "COALESCE(u2.profile_pic, '')"] :profile_pic]
                     [[:raw "
                       CONCAT(
-                        'Practiced ', pl.duration, ' min on ',
-                        g.title,
-                        CASE
-                          WHEN pl.notes IS NOT NULL AND pl.notes <> ''
-                          THEN CONCAT(' (', pl.notes, ')')
-                          ELSE ''
-                        END
+                        'Practice: ',
+                        pl.duration, ' min: ',
+                        g.title, ': ',
+                        COALESCE(pl.notes, '')
                       )"] :message]
                     [[:raw "pl.created_at"] :created_at])
                   (h/from [:practice_logs :pl])
@@ -57,6 +56,5 @@
 
             (h/order-by [:created_at :desc])
             (sql/format))]
-    (jdbc/execute! (db/datasource)
-                   union-query
+    (jdbc/execute! (db/datasource) union-query
                    {:builder-fn rs/as-unqualified-lower-maps})))

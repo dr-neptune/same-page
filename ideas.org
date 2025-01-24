@@ -1,3 +1,14 @@
+* <2025-01-24 Fri>
+
+fix feed change issues
+add back profile, add buttons back to dashboard segment.
+
+Maybe dashboard should be the top of the feed?
+
+make practice log more accessible and easier to add to.
+
+Make a way to mark a goal as completed.
+
 * <2025-01-21 Tue>
 
 Currently when the user registers, it doesn't seem to set a cookie or
@@ -22,12 +33,12 @@ Maybe something bigger now
 For each update from any user, if they add a goal, practice session,
 or note have it push to a feed.
 
-Make the feed at / , user dashboard at home? 
+Make the feed at / , user dashboard at home?
 
 
 * <2025-01-20 Mon>
 
-Let's start with integer -> minutes
+Let's start with integer -> minutes.
 
 Add avatar to public page
 remove edit / delete from public page view
