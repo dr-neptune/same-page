@@ -9,11 +9,11 @@
    [:div {:class "max-w-md mx-auto bg-[#2a2136] p-6 rounded shadow-md"}
     [:h1 {:class "text-3xl mb-4 font-bold"} "Update Your Profile"]
 
-    ;; Show profile pic if present, else "No Profile Picture"
+    ;; Show profile pic if present
     (if (seq (str (:profile_pic user-record)))
       [:div {:class "mb-4"}
-       [:img {:src  (:profile_pic user-record)
-              :alt  "Profile Picture"
+       [:img {:src   (:profile_pic user-record)
+              :alt   "Profile Picture"
               :class "h-40 w-auto object-cover border border-gray-500"}]]
       [:div {:class "mb-4 bg-[#1e1e28] border border-gray-500 h-40 w-40
                      flex items-center justify-center text-gray-300"}

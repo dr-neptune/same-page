@@ -13,8 +13,7 @@
     (.format zdt formatter)))
 
 (defn page-layout
-  "Common site layout with a top bar for navigation (including emojis),
-   plus a toggleGoalRow() script so that expanding goals works."
+  "Common site layout with a top bar (containing emojis), plus toggleGoalRow() script."
   [request title & body-content]
   (let [session   (:session request)
         user      (:user session)
@@ -24,13 +23,11 @@
       [:meta {:charset "utf-8"}]
       [:meta {:name "viewport" :content "width=device-width, initial-scale=1.0"}]
       [:title title]
-      ;; Tailwind + htmx
+      ;; Tailwind + HTMX
       [:script {:src "https://cdn.tailwindcss.com"}]
       [:script {:src "https://unpkg.com/htmx.org@1.9.2"}]
-      [:link {:rel "stylesheet"
-              :href "/css/webfont/tabler-icons.min.css"}]]
+      [:link {:rel "stylesheet" :href "/css/webfont/tabler-icons.min.css"}]]
      [:body {:class "min-h-screen bg-[#1e1e28] text-[#e0def2]"}
-
       ;; -- TOP NAV --
       [:div {:class "flex justify-between items-center p-2 bg-[#2a2136]"}
        ;; Left side => link to Feed
@@ -39,30 +36,32 @@
              :class "text-xl text-purple-400 hover:underline font-bold"}
          "📰 Feed"]]
 
-       ;; Right side => depends if user is logged in
+       ;; Right side => depends on login status
        (if (nil? user)
-         ;; Logged OUT => show Log In & Register
+         ;; Logged OUT => show Login & Register
          [:div {:class "space-x-4"}
           [:a {:href "/login"
                :class "underline"} "🔑 Login"]
           [:a {:href "/register"
                :class "underline"} "📝 Register"]]
 
-         ;; Logged IN => show Dashboard, maybe Admin, and Log Out
+         ;; Logged IN => show Dashboard, Profile, maybe Admin, Logout
          [:div {:class "space-x-4"}
           [:a {:href "/dashboard"
                :class "underline"} "🎯 Dashboard"]
+          [:a {:href "/profile"
+               :class "underline"} "👤 Profile"]
           (when is-admin?
             [:a {:href "/admin"
                  :class "underline"} "👑 Admin"])
           [:a {:href "/logout"
                :class "underline"} "🔓 Logout"]])]
 
-      ;; MAIN CONTENT
+      ;; Main page content
       [:div {:class "p-8"}
        body-content]
 
-      ;; -- Script for toggling goal rows (expansion) --
+      ;; Script for toggling goal expansions
       [:script
        "function toggleGoalRow(goalId) {
           let detailId = 'goal-detail-' + goalId;

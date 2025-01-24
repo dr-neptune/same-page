@@ -17,11 +17,11 @@
 
 (defn routes
   [system]
-  [;; 1) Root => feed
+  [;; 1) Root => global feed
    ["/"
     {:get {:handler (partial #'feed/feed-handler system)}}]
 
-   ;; 2) Dashboard
+   ;; 2) Dashboard => user’s personal page
    ["/dashboard"
     {:get {:handler (partial #'dash/dashboard-handler system)}}]
 
@@ -60,6 +60,7 @@
     {:post {:handler (partial #'goals/create-goal-handler system)}}]
    ["/goals/new"
     {:get {:handler (partial #'goals/get-new-goal-handler system)}}]
+   ;; The route that handles expansions:
    ["/goals/:id/desc"
     {:get {:handler (partial #'goals/get-goal-detail-handler system)}}]
    ["/goals/:id/edit"
@@ -80,7 +81,6 @@
     {:get {:handler (partial #'admin/admin-handler system)}}]])
 
 (defn root-handler
-  "Builds the top-level Ring handler, including not-found fallback."
   [system request]
   (let [handler (reitit-ring/ring-handler
                  (reitit-ring/router (routes system))
