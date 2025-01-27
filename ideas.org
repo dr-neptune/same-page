@@ -1,3 +1,7 @@
+* <2025-01-26 Sun>
+
+add back user profile links to the feed
+
 * <2025-01-24 Fri>
 
 fix feed change issues
