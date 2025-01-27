@@ -91,7 +91,9 @@
                :value (or (:icon goal-data) "")
                :class "w-full p-2 border border-gray-300 rounded bg-[#2f2b3b] text-[#e0def2]"}]
       [:p {:class "text-sm text-gray-400"}
-       "Examples: \"music\", \"alarm\", \"guitar\", etc. => uses \"ti ti-music\"."]]
+       [:a {:href "https://tabler.io/icons"
+            :class "text-blue-500 hover:underline"}
+        "Examples: \"music\", \"activity\", \"guitar\", etc. Click for full icons List"]]]
 
      [:button {:type "submit"
                :class "mt-2 bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700"}

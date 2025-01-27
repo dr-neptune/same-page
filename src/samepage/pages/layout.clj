@@ -34,7 +34,7 @@
        [:div
         [:a {:href "/"
              :class "text-xl text-purple-400 hover:underline font-bold"}
-         "📰 Feed"]]
+         "📰 Activity"]]
 
        ;; Right side => depends on login status
        (if (nil? user)
