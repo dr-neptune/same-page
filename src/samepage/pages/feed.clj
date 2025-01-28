@@ -3,55 +3,77 @@
             [clojure.string :as str]
             [hiccup2.core :as h]))
 
-;; Helper to parse aggregator messages into a top line & bottom line
+;; We'll parse the aggregator's feed_type & message into a
+;; 2-element vector: [top-line bottom-line].
+;; But top-line itself will be a Hiccup vector so we can inject an <a> for the username.
 (defn- parse-feed-lines
-  "Given feed_type (📝/🎯/🏋️), aggregator message (e.g. 'Goal: MyTitle'),
-   plus username & date, produce [top-line bottom-line]."
+  "Given feed_type (📝/🎯/🏋️),
+   aggregator message (e.g. 'Goal: MyTitle'),
+   plus username & date, produce [top-line-hiccup bottom-line-string]."
   [feed_type username formatted-time message]
   (cond
-    ;; 1) NOTE => aggregator might be 'Note: <text>'
+    ;; 1) Note => aggregator might be 'Note: <text>'
     (= feed_type "📝")
     (let [text (-> message
-                   (str/replace-first #"(?i)^note:\s*" "")  ;; remove leading 'Note:'
+                   (str/replace-first #"(?i)^note:\s*" "")  ;; remove 'Note:'
                    (str/trim))]
-      [(str username " | 📝 Note | " formatted-time)
+      ;; top line => [ :span [...hiccup...] ]
+      [[:span
+        [:a {:href (str "/u/" username)
+             :class "text-pink-300 font-semibold hover:underline mr-1"}
+         (or username "???")]
+        " | 📝 Note | "
+        formatted-time]
        text])
 
-    ;; 2) GOAL => aggregator might be 'Goal: <title>'
+    ;; 2) Goal => aggregator might be 'Goal: <title>'
     (= feed_type "🎯")
     (let [title (-> message
-                    (str/replace-first #"(?i)^goal:\s*" "")  ;; remove 'Goal:' prefix
+                    (str/replace-first #"(?i)^goal:\s*" "")  ;; remove 'Goal:'
                     (str/trim))]
-      ;; We display it as "Created Goal: Title"
-      [(str username " | 🎯 Created Goal: " title " | " formatted-time)
-       ""]) ;; no separate bottom line for goals
+      [[:span
+        [:a {:href (str "/u/" username)
+             :class "text-pink-300 font-semibold hover:underline mr-1"}
+         (or username "???")]
+        " | 🎯 Created Goal: " title " | "
+        formatted-time]
+       ""])
 
-    ;; 3) PRACTICE => aggregator might be 'Practice: <duration>: <goal name>: <notes>'
+    ;; 3) Practice => aggregator might be 'Practice: <duration>: <goal name>: <notes>'
     (= feed_type "🏋️")
     (let [parts (map str/trim (str/split message #":" 4))
-          ;; example => ["Practice" "30 min" "SomeGoal" "some practice note..."]
+          ;; example => ["Practice" "30 min" "SomeGoal" "some text..."]
           dur   (nth parts 1 "")
           goal  (nth parts 2 "")
           note  (nth parts 3 "")]
-      [(str username " | " goal " | 🏋️ Practice | " dur " | " formatted-time)
+      [[:span
+        [:a {:href (str "/u/" username)
+             :class "text-pink-300 font-semibold hover:underline mr-1"}
+         (or username "???")]
+        " | " goal " | 🏋️ Practice | " dur " | "
+        formatted-time]
        note])
 
-    ;; fallback => feed_type unrecognized => show entire message on top
+    ;; fallback => feed_type not recognized => just show everything in top line
     :else
-    [(str username " | " feed_type " | " formatted-time)
+    [[:span
+      [:a {:href (str "/u/" username)
+           :class "text-pink-300 font-semibold hover:underline mr-1"}
+       (or username "???")]
+      " | " feed_type " | " formatted-time]
      message]))
 
 (defn feed-page
-  "Renders each feed item with:
-   [avatar] on the left, then two lines of text:
-   - top line => parse-feed-lines => 'username | ... | date'
-   - bottom line => extra text if any."
+  "Renders each feed item as:
+   [avatar] => top line (hiccup) => bottom line (string).
+   The top line is user name link, plus feed icon + text, plus date.
+   The bottom line is extra text (e.g. the note or practice details)."
   [request feed-items]
   (layout/page-layout
    request
    "Global Feed"
    [:div {:class "max-w-2xl mx-auto bg-[#2a2136] p-6 rounded shadow-md"}
-    [:h1 {:class "text-3xl mb-4 font-bold"} "Recent Activity"]
+    [:h1 {:class "text-3xl mb-4 font-bold"} "Global Activity Feed"]
 
     (if (empty? feed-items)
       [:p "No items in the feed yet!"]
@@ -59,10 +81,10 @@
       [:ul {:class "space-y-4"}
        (for [{:keys [feed_type username profile_pic message created_at]} feed-items]
          (let [formatted-time (layout/format-timestamp created_at)
-               [line1 line2] (parse-feed-lines feed_type username formatted-time message)]
+               [top-line bottom-line] (parse-feed-lines feed_type username formatted-time message)]
            [:li {:class "border border-gray-600 rounded p-4 bg-[#2f2b3b]"}
             [:div {:class "flex items-start space-x-4"}
-             ;; (1) Avatar on the far left
+             ;; (1) Avatar on the left
              (if (seq (str profile_pic))
                [:img {:src profile_pic
                       :alt (str username " avatar")
@@ -71,13 +93,12 @@
                [:div {:class "w-12 h-12 rounded-full bg-gray-600 border border-gray-500
                               flex items-center justify-center text-sm text-white"}
                 "?"])
-
-             ;; (2) Two-line content
+             ;; (2) The textual content => top line (hiccup) + bottom line (string)
              [:div {:class "flex-1"}
-              ;; top line => e.g. "alice | 🎯 Created Goal: Title | date"
+              ;; top line => a small line with user link, feed icon or text, date
               [:div {:class "text-sm text-gray-400 mb-1"}
-               line1]
-              ;; bottom line => if there's extra text (notes, etc.)
-              (when (seq (str/trim line2))
+               top-line]
+              ;; bottom line => only show if non-empty
+              (when (seq (str/trim bottom-line))
                 [:div {:class "text-[#e0def2] whitespace-pre-wrap"}
-                 line2])]]]))])]))
+                 bottom-line])]]]))])]))
